@@ -1,74 +1,71 @@
-// ===========================================
- // DOGET: expone JSON según parámetro “tipo”
- // ===========================================
- function doGet(e) {
-   const tipo = (e.parameter.tipo || 'kpi').toLowerCase();
-   let payload;
- 
-   switch (tipo) {
-     case 'kpi':
-       payload = getKPIData();
-       break;
-     case 'faltantes':
-       payload = getFaltantesData();
-       break;
-     default:
-       return ContentService
-         .createTextOutput(JSON.stringify({ error: 'tipo inválido' }))
-         .setMimeType(ContentService.MimeType.JSON);
-   }
- 
-   return ContentService
-     .createTextOutput(JSON.stringify({ tipo, datos: payload }))
-     .setMimeType(ContentService.MimeType.JSON);
- }
- 
- // ===========================================
- // Lee KPIs actuales desde "ventas generales"
- // ===========================================
- function getKPIData() {
-   const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('ventas generales');
- 
-   const kpis = hoja.getRange('Q2:W9').getValues(); // KPIs parte superior
-   const lista = [];
- 
-   for (let i = 0; i < kpis.length; i++) {
-     const fila = kpis[i];
-     const kpi = fila[0];
-     lista.push({
-       kpi,
-       valor100: fila[1],
-       valor125: fila[2],
-       valor70: fila[3],
-       resultado: fila[4],
-       arrastre: fila[5],
-       total: fila[6]
-     });
-   }
- 
-   return lista;
- }
- 
- // =====================================================
- // Lee cuánto falta para metas (desde fila 15 en adelante)
- // =====================================================
- function getFaltantesData() {
-   const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('ventas generales');
-   const faltantes = hoja.getRange('Q15:T21').getValues(); // Asegúrate del rango correcto
-   const lista = [];
- 
-   for (let i = 0; i < faltantes.length; i++) {
-     const fila = faltantes[i];
-     const kpi = fila[0];
-     if (!kpi) continue;
- 
-     lista.push({
-       kpi,
-       faltante100: fila[1],
-       faltante150: fila[2],
-       faltante250: fila[3],
-     });
-   }
- 
-   return lista;
- }
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dashboard KPIs - Manu</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        padding: 20px;
+      }
+      .kpi-card {
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      .progress-bar {
+        background: #ddd;
+        border-radius: 10px;
+        overflow: hidden;
+        height: 20px;
+        margin-top: 5px;
+      }
+      .progress {
+        background: #4caf50;
+        height: 100%;
+        text-align: right;
+        padding-right: 5px;
+        color: white;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>📊 Dashboard KPIs</h1>
+    <div id="kpis"></div>
+
+    <script>
+      const API_URL =
+        "https://script.google.com/macros/s/AKfycby9UyKr-UcWOCvrMGCsgvc38_-HmKZpXjlj9THbGLNK0lhLJ7B-_RSVpxFpP76eWjeP/exec?tipo=kpi"
+
+      async function cargarKPIs() {
+        const res = await fetch(API_URL)
+        const data = await res.json()
+
+        const contenedor = document.getElementById("kpis")
+        data.datos.forEach((item) => {
+          const porcentaje = Math.min(
+            100,
+            Math.round((item.resultado / item.valor100) * 100),
+          )
+
+          const kpiDiv = document.createElement("div")
+          kpiDiv.className = "kpi-card"
+          kpiDiv.innerHTML = `
+          <h3>${item.kpi}</h3>
+          <p><strong>Resultado:</strong> ${item.resultado} / ${item.valor100}</p>
+          <div class="progress-bar">
+            <div class="progress" style="width:${porcentaje}%">${porcentaje}%</div>
+          </div>
+        `
+          contenedor.appendChild(kpiDiv)
+        })
+      }
+
+      cargarKPIs()
+    </script>
+  </body>
+</html>
