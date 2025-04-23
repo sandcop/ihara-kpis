@@ -1,6 +1,56 @@
-// ===========================================
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ihara KPIs</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"/>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    pre {
+      width: 90%;
+      max-width: 900px;
+      background: #1e293b;
+      padding: 1.5rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      animation: slideUp 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(-10px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+
+    @keyframes slideUp {
+      from {opacity: 0; transform: translateY(20px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Script de KPIs – Ihara</h1>
+
+  <pre><code class="language-javascript">
 // DOGET: expone JSON según parámetro “tipo”
-// ===========================================
 function doGet(e) {
   const tipo = (e.parameter.tipo || 'kpi').toLowerCase();
   let payload;
@@ -23,20 +73,16 @@ function doGet(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// ===========================================
 // Lee KPIs actuales desde "ventas generales"
-// ===========================================
 function getKPIData() {
   const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('ventas generales');
-
-  const kpis = hoja.getRange('Q2:W9').getValues(); // KPIs parte superior
+  const kpis = hoja.getRange('Q2:W9').getValues();
   const lista = [];
 
   for (let i = 0; i < kpis.length; i++) {
     const fila = kpis[i];
-    const kpi = fila[0];
     lista.push({
-      kpi,
+      kpi: fila[0],
       valor100: fila[1],
       valor125: fila[2],
       valor70: fila[3],
@@ -49,12 +95,10 @@ function getKPIData() {
   return lista;
 }
 
-// =====================================================
-// Lee cuánto falta para metas (desde fila 15 en adelante)
-// =====================================================
+// Lee cuánto falta para metas
 function getFaltantesData() {
   const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('ventas generales');
-  const faltantes = hoja.getRange('Q15:T21').getValues(); // Asegúrate del rango correcto
+  const faltantes = hoja.getRange('Q15:T21').getValues();
   const lista = [];
 
   for (let i = 0; i < faltantes.length; i++) {
@@ -66,9 +110,16 @@ function getFaltantesData() {
       kpi,
       faltante100: fila[1],
       faltante150: fila[2],
-      faltante250: fila[3],
+      faltante250: fila[3]
     });
   }
 
   return lista;
 }
+  </code></pre>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+
+</body>
+</html>
