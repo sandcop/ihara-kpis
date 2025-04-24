@@ -1,71 +1,35 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Dashboard KPIs - Manu</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background: #f4f4f4;
-        padding: 20px;
-      }
-      .kpi-card {
-        background: white;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      }
-      .progress-bar {
-        background: #ddd;
-        border-radius: 10px;
-        overflow: hidden;
-        height: 20px;
-        margin-top: 5px;
-      }
-      .progress {
-        background: #4caf50;
-        height: 100%;
-        text-align: right;
-        padding-right: 5px;
-        color: white;
-        font-size: 12px;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>📊 Dashboard KPIs</h1>
-    <div id="kpis"></div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ihara KPIs Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Incluir Chart.js desde CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
 
-    <script>
-      const API_URL =
-        "https://script.google.com/macros/s/AKfycby9UyKr-UcWOCvrMGCsgvc38_-HmKZpXjlj9THbGLNK0lhLJ7B-_RSVpxFpP76eWjeP/exec?tipo=kpi"
+  <h1>Indicadores de ventas Manu</h1>
 
-      async function cargarKPIs() {
-        const res = await fetch(API_URL)
-        const data = await res.json()
+  <div class="buttons">
+    <!-- IDs correctos, sin onclick -->
+    <button id="btn-kpis">Ver KPIs</button>
+    <button id="btn-faltantes">Ver Faltantes</button>
+  </div>
 
-        const contenedor = document.getElementById("kpis")
-        data.datos.forEach((item) => {
-          const porcentaje = Math.min(
-            100,
-            Math.round((item.resultado / item.valor100) * 100),
-          )
+  <!-- Contenedor principal para la tabla y el mensaje de carga/error -->
+  <section id="data-content">
+    <!-- El contenido (loader o tabla) se insertará aquí -->
+  </section>
 
-          const kpiDiv = document.createElement("div")
-          kpiDiv.className = "kpi-card"
-          kpiDiv.innerHTML = `
-          <h3>${item.kpi}</h3>
-          <p><strong>Resultado:</strong> ${item.resultado} / ${item.valor100}</p>
-          <div class="progress-bar">
-            <div class="progress" style="width:${porcentaje}%">${porcentaje}%</div>
-          </div>
-        `
-          contenedor.appendChild(kpiDiv)
-        })
-      }
+  <!-- Contenedor para el gráfico (inicialmente oculto) -->
+  <section id="chart-container">
+    <canvas id="kpiChart"></canvas>
+  </section>
 
-      cargarKPIs()
-    </script>
-  </body>
+  <!-- Enlazar script.js al final y con defer -->
+  <script src="script.js" defer></script>
+
+</body>
 </html>
