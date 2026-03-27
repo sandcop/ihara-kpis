@@ -169,19 +169,19 @@ async function cargarKPIs() {
       const card = document.createElement('div');
       card.className = 'kpi-card';
       card.style.setProperty('--kpi-color', color);
-      card.innerHTML = \`
-        <div class="kpi-card-id">\${kpi.id || ''}</div>
-        <div class="kpi-card-desc">\${kpi.descripcion || ''}</div>
-        <div class="kpi-card-val">\${formatVal(kpi.real)}</div>
-        <div class="kpi-card-meta">Meta: \${formatVal(kpi.meta)}\${tieneAporte ? ' · Peso: ' + formatPorc(kpi.peso) : ''}</div>
-        \${tieneAporte ? \`<div class="kpi-progress-wrap">
-          <div class="kpi-progress-track"><div class="kpi-progress-fill" style="width:\${porcPct}%"></div></div>
-          <div class="kpi-progress-label">\${formatPorc(porcVal)}\${kpi.aporte ? ' · Aporte: ' + formatPorc(kpi.aporte) : ''}</div>
-        </div>\` : \`<div class="kpi-progress-wrap">
-          <div class="kpi-progress-track"><div class="kpi-progress-fill" style="width:\${porcPct}%"></div></div>
-          <div class="kpi-progress-label">\${formatPorc(porcVal)}</div>
-        </div>\`}
-      \`;
+      card.innerHTML = `
+        <div class="kpi-card-id">${kpi.id || ''}</div>
+        <div class="kpi-card-desc">${kpi.descripcion || ''}</div>
+        <div class="kpi-card-val">${formatVal(kpi.real)}</div>
+        <div class="kpi-card-meta">Meta: ${formatVal(kpi.meta)}${tieneAporte ? ' · Peso: ' + formatPorc(kpi.peso) : ''}</div>
+        ${tieneAporte ? `<div class="kpi-progress-wrap">
+          <div class="kpi-progress-track"><div class="kpi-progress-fill" style="width:${porcPct}%"></div></div>
+          <div class="kpi-progress-label">${formatPorc(porcVal)}${kpi.aporte ? ' · Aporte: ' + formatPorc(kpi.aporte) : ''}</div>
+        </div>` : `<div class="kpi-progress-wrap">
+          <div class="kpi-progress-track"><div class="kpi-progress-fill" style="width:${porcPct}%"></div></div>
+          <div class="kpi-progress-label">${formatPorc(porcVal)}</div>
+        </div>`}
+      `;
       grid.appendChild(card);
     });
   } catch(e) {
@@ -746,17 +746,17 @@ async function cargarMetas() {
     res.metas.forEach(m => {
       const row = document.createElement('div');
       row.className = 'meta-row';
-      row.innerHTML = \`
+      row.innerHTML = `
         <div class="meta-info">
-          <span class="meta-id">\${m.kpiId}</span>
-          <span class="meta-desc">\${m.descripcion || ''}</span>
+          <span class="meta-id">${m.kpiId}</span>
+          <span class="meta-desc">${m.descripcion || ''}</span>
         </div>
         <div class="meta-edit">
-          <input class="meta-input" type="text" value="\${m.meta}" data-kpi="\${m.kpiId}" placeholder="Meta">
-          <span class="meta-tipo">\${m.tipoMeta || ''}</span>
-          <span class="meta-peso">\${m.pesoPPM || ''}</span>
+          <input class="meta-input" type="text" value="${m.meta}" data-kpi="${m.kpiId}" placeholder="Meta">
+          <span class="meta-tipo">${m.tipoMeta || ''}</span>
+          <span class="meta-peso">${m.pesoPPM || ''}</span>
         </div>
-      \`;
+      `;
       wrap.appendChild(row);
     });
 
@@ -764,14 +764,14 @@ async function cargarMetas() {
     const btnWrap = document.createElement('div');
     btnWrap.className = 'form-actions';
     btnWrap.style.marginTop = '20px';
-    btnWrap.innerHTML = \`
+    btnWrap.innerHTML = `
       <div class="field" style="flex:1;max-width:260px">
         <label>Contraseña admin</label>
         <input type="password" id="metas-password" placeholder="Contraseña">
       </div>
       <button class="btn-accent" id="metas-guardar-btn">Guardar metas →</button>
       <p class="form-msg" id="metas-msg"></p>
-    \`;
+    `;
     wrap.appendChild(btnWrap);
 
     document.getElementById('metas-guardar-btn').addEventListener('click', async () => {
