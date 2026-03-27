@@ -1,5 +1,5 @@
 // ── CONFIG ──────────────────────────────────────────────
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9opuK_1GvV6zHNV4QX6m3T-v6RbiUdXvVtXMMIXxpuAjmlkFYu62lB8tWGwRtK3TB/exec'; // ← reemplaza con tu URL
+const APPS_SCRIPT_URL = 'TU_URL_APPS_SCRIPT_AQUI'; // ← reemplaza con tu URL
 const FIREBASE_BUCKET = 'seguimiento-ventas-manuel.firebasestorage.app'; // ← o el del cliente
 const GALERIA_FOLDER  = 'galeria_v2/';
 const PASS_KEY        = btoa('Ventas2025'); // contraseña de ventas (sync con Config.gs)
@@ -103,7 +103,8 @@ function navigateTo(sec) {
   const ni = document.querySelector('.nav-item[data-section="' + sec + '"]');
   if (ni) ni.classList.add('active');
   // Carga lazy
-  if (sec === 'kpis')      cargarKPIs();
+  if (sec === 'kpis')      { cargarKPIs(); cargarAceleradores(); }
+  if (sec === 'metas')     cargarMetas();
   if (sec === 'faltantes') cargarFaltantes();
   if (sec === 'codigos')   cargarTablacodigos();
 }
@@ -160,25 +161,27 @@ async function cargarKPIs() {
     // Cards
     grid.innerHTML = '';
     res.kpis.forEach(kpi => {
-      const porcVal = typeof kpi.porcCumpl === 'number' ? kpi.porcCumpl : parseFloat(kpi.porcCumpl) || 0;
-      const color   = porcVal >= 1 ? '#00b894' : porcVal >= 0.7 ? '#fdcb6e' : '#e17055';
+      const porcVal = typeof kpi.porcCumpl === 'number' ? kpi.porcCumpl : parseFloat(String(kpi.porcCumpl).replace('%',''))/100 || 0;
+      const color   = porcVal >= 1.5 ? '#6c5ce7' : porcVal >= 1 ? '#00b894' : porcVal >= 0.7 ? '#fdcb6e' : '#e17055';
       const porcPct = Math.min(porcVal * 100, 100);
+      const tieneAporte = kpi.peso && kpi.peso !== '';
 
       const card = document.createElement('div');
       card.className = 'kpi-card';
       card.style.setProperty('--kpi-color', color);
-      card.innerHTML = `
-        <div class="kpi-card-id">${kpi.id || ''}</div>
-        <div class="kpi-card-desc">${kpi.descripcion || ''}</div>
-        <div class="kpi-card-val">${formatVal(kpi.real)}</div>
-        <div class="kpi-card-meta">Meta: ${formatVal(kpi.meta)} · Peso: ${formatPorc(kpi.peso)}</div>
-        <div class="kpi-progress-wrap">
-          <div class="kpi-progress-track">
-            <div class="kpi-progress-fill" style="width:${porcPct}%"></div>
-          </div>
-          <div class="kpi-progress-label">${formatPorc(porcVal)}</div>
-        </div>
-      `;
+      card.innerHTML = \`
+        <div class="kpi-card-id">\${kpi.id || ''}</div>
+        <div class="kpi-card-desc">\${kpi.descripcion || ''}</div>
+        <div class="kpi-card-val">\${formatVal(kpi.real)}</div>
+        <div class="kpi-card-meta">Meta: \${formatVal(kpi.meta)}\${tieneAporte ? ' · Peso: ' + formatPorc(kpi.peso) : ''}</div>
+        \${tieneAporte ? \`<div class="kpi-progress-wrap">
+          <div class="kpi-progress-track"><div class="kpi-progress-fill" style="width:\${porcPct}%"></div></div>
+          <div class="kpi-progress-label">\${formatPorc(porcVal)}\${kpi.aporte ? ' · Aporte: ' + formatPorc(kpi.aporte) : ''}</div>
+        </div>\` : \`<div class="kpi-progress-wrap">
+          <div class="kpi-progress-track"><div class="kpi-progress-fill" style="width:\${porcPct}%"></div></div>
+          <div class="kpi-progress-label">\${formatPorc(porcVal)}</div>
+        </div>\`}
+      \`;
       grid.appendChild(card);
     });
   } catch(e) {
@@ -186,7 +189,48 @@ async function cargarKPIs() {
   }
 }
 
-document.getElementById('btn-refresh-kpis').addEventListener('click', cargarKPIs);
+document.getElementById('btn-refresh-kpis').addEventListener('click', () => { cargarKPIs(); cargarAceleradores(); });
+
+// ── ACELERADORES ─────────────────────────────────────────
+async function cargarAceleradores() {
+  const grid     = document.getElementById('acel-grid');
+  const totalWrap= document.getElementById('acel-total-wrap');
+  const totalVal = document.getElementById('acel-total-val');
+  if (!grid) return;
+  grid.innerHTML = '<div class="loader-wrap"><div class="spinner"></div></div>';
+
+  try {
+    const res = await get('getaceleradores');
+    if (!res.success) throw new Error(res.error);
+
+    const a = res.aceleradores;
+    // Los mensajes vienen directo desde la hoja Aceleradores
+    const items = [
+      { title: 'Voz Móvil',        msg: a.voz,            color: '#6c5ce7' },
+      { title: 'Fibra Óptica',     msg: a.fo,             color: '#0984e3' },
+      { title: 'Terminales',       msg: a.terminales,     color: '#e17055' },
+      { title: 'Oferta Especial',  msg: a.ofertaEspecial, color: '#00b894' },
+    ];
+
+    grid.innerHTML = '';
+    items.forEach(item => {
+      if (!item.msg) return;
+      const card = document.createElement('div');
+      card.className = 'acel-card';
+      card.style.setProperty('--acel-color', item.color);
+      card.innerHTML = `
+        <div class="acel-card-title">${item.title}</div>
+        <div class="acel-card-msg">${item.msg}</div>
+      `;
+      grid.appendChild(card);
+    });
+
+    totalWrap.style.display = 'none';
+
+  } catch(e) {
+    grid.innerHTML = '<p style="color:var(--text-2);padding:20px">Error cargando aceleradores: ' + e.message + '</p>';
+  }
+}
 
 // ── FALTANTES ────────────────────────────────────────────
 async function cargarFaltantes() {
@@ -236,30 +280,59 @@ async function cargarFaltantes() {
 
 // ── FORMULARIO VENTA ─────────────────────────────────────
 async function initFormVenta() {
-  // Cargar códigos para el select
+  // Cargar reglas para el select de código y auto-detección
   try {
     const res = await get('getreglasentradas');
     if (res.success) {
       reglasCache = res.reglas;
-      const sel = document.getElementById('vf-codigo');
-      res.reglas.forEach(r => {
+      // Poblar select de código producto
+      const selCod = document.getElementById('vf-codigo');
+      // Obtener códigos únicos
+      const codsUnicos = [...new Set(res.reglas.map(r => r.codigoProducto))].filter(Boolean);
+      codsUnicos.forEach(cod => {
+        const r = res.reglas.find(x => x.codigoProducto === cod);
         const opt = document.createElement('option');
-        opt.value = r.codigoProducto;
-        opt.textContent = r.codigoProducto + (r.nombrePlan ? ' — ' + r.nombrePlan : '');
-        opt.dataset.regla = JSON.stringify(r);
-        sel.appendChild(opt);
-      });
-      sel.addEventListener('change', () => {
-        const opt = sel.options[sel.selectedIndex];
-        if (opt.dataset.regla) {
-          const r = JSON.parse(opt.dataset.regla);
-          document.getElementById('vf-tipo-kpi').value      = r.tipoParrilla    || '';
-          document.getElementById('vf-categoria').value     = r.categoria       || '';
-          document.getElementById('vf-tipo-entrada').value  = r.tipoEntrada     || '';
-        }
+        opt.value = cod;
+        opt.textContent = cod + (r?.nombrePlan ? ' — ' + r.nombrePlan : '');
+        selCod.appendChild(opt);
       });
     }
   } catch(_) {}
+
+  // Auto-detectar EntradasEquivPorUnidad cuando cambian KPI, Código o TipoEntrada
+  const selKPI      = document.getElementById('vf-tipo-kpi');
+  const selCod      = document.getElementById('vf-codigo');
+  const selEntrada  = document.getElementById('vf-tipo-entrada');
+  const inpCantidad = document.getElementById('vf-cantidad');
+  const inpEquivUnit= document.getElementById('vf-entradas-unit');
+  const inpEquivTot = document.getElementById('vf-entradas-total');
+
+  function buscarEntradasEquiv() {
+    const codigo  = selCod.value.trim();
+    const entrada = selEntrada.value.trim();
+    if (!codigo || !entrada) {
+      inpEquivUnit.value = '';
+      inpEquivTot.value  = '';
+      return;
+    }
+    // Buscar en cache de reglas: match por codigoProducto + tipoEntrada
+    const regla = reglasCache.find(r =>
+      r.codigoProducto === codigo && r.tipoEntrada === entrada
+    );
+    if (regla && regla.valorEntradaEquiv !== '' && regla.valorEntradaEquiv !== null) {
+      const valUnit = parseFloat(regla.valorEntradaEquiv) || 0;
+      const cant    = parseFloat(inpCantidad.value) || 1;
+      inpEquivUnit.value = valUnit;
+      inpEquivTot.value  = (valUnit * cant).toFixed(2);
+    } else {
+      inpEquivUnit.value = '';
+      inpEquivTot.value  = '';
+    }
+  }
+
+  selCod.addEventListener('change', buscarEntradasEquiv);
+  selEntrada.addEventListener('change', buscarEntradasEquiv);
+  inpCantidad.addEventListener('input', buscarEntradasEquiv);
 
   // Fecha default = hoy
   document.getElementById('vf-fecha').valueAsDate = new Date();
@@ -288,7 +361,9 @@ async function initFormVenta() {
       tipoKPIPrincipal: document.getElementById('vf-tipo-kpi').value,
       categoriaRegla:  document.getElementById('vf-categoria').value,
       tipoEntradaRegla: document.getElementById('vf-tipo-entrada').value,
-      cantidadVendida: form.cantidadVendida.value,
+      cantidadVendida:  form.cantidadVendida.value,
+      entradasEquivUnit: document.getElementById('vf-entradas-unit').value,
+      totalEntradas:     document.getElementById('vf-entradas-total').value,
       orden:           form.orden.value,
       modeloEquipo:    form.modeloEquipo.value,
       valorEquipo:     form.valorEquipo.value,
@@ -656,4 +731,79 @@ function darken(hex, pct) {
   const g   = Math.max(0, ((n >> 8) & 0xFF) - pct);
   const b   = Math.max(0, (n & 0xFF) - pct);
   return '#' + [r,g,b].map(c => c.toString(16).padStart(2,'0')).join('');
+}
+
+// ── METAS ────────────────────────────────────────────────
+async function cargarMetas() {
+  const wrap = document.getElementById('metas-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<div class="loader-wrap"><div class="spinner"></div></div>';
+  try {
+    const res = await get('getmetas');
+    if (!res.success) throw new Error(res.error);
+
+    wrap.innerHTML = '';
+    res.metas.forEach(m => {
+      const row = document.createElement('div');
+      row.className = 'meta-row';
+      row.innerHTML = \`
+        <div class="meta-info">
+          <span class="meta-id">\${m.kpiId}</span>
+          <span class="meta-desc">\${m.descripcion || ''}</span>
+        </div>
+        <div class="meta-edit">
+          <input class="meta-input" type="text" value="\${m.meta}" data-kpi="\${m.kpiId}" placeholder="Meta">
+          <span class="meta-tipo">\${m.tipoMeta || ''}</span>
+          <span class="meta-peso">\${m.pesoPPM || ''}</span>
+        </div>
+      \`;
+      wrap.appendChild(row);
+    });
+
+    // Botón guardar todas
+    const btnWrap = document.createElement('div');
+    btnWrap.className = 'form-actions';
+    btnWrap.style.marginTop = '20px';
+    btnWrap.innerHTML = \`
+      <div class="field" style="flex:1;max-width:260px">
+        <label>Contraseña admin</label>
+        <input type="password" id="metas-password" placeholder="Contraseña">
+      </div>
+      <button class="btn-accent" id="metas-guardar-btn">Guardar metas →</button>
+      <p class="form-msg" id="metas-msg"></p>
+    \`;
+    wrap.appendChild(btnWrap);
+
+    document.getElementById('metas-guardar-btn').addEventListener('click', async () => {
+      const pwd = document.getElementById('metas-password').value;
+      const msg = document.getElementById('metas-msg');
+      if (!pwd) { showMsg(msg, 'Ingresa la contraseña.', false); return; }
+
+      const inputs = wrap.querySelectorAll('.meta-input');
+      const btn    = document.getElementById('metas-guardar-btn');
+      btn.disabled = true; btn.textContent = 'Guardando...';
+
+      let errores = 0;
+      for (const inp of inputs) {
+        const kpiId    = inp.dataset.kpi;
+        const nuevaMeta = inp.value.trim();
+        if (!nuevaMeta) continue;
+        try {
+          const res = await post('actualizarMeta', { kpiId, nuevaMeta, password: pwd });
+          if (!res.success) errores++;
+        } catch(_) { errores++; }
+      }
+
+      btn.disabled = false; btn.textContent = 'Guardar metas →';
+      if (errores === 0) {
+        showMsg(msg, '✅ Metas actualizadas correctamente.', true);
+        toast('Metas guardadas', 'ok');
+      } else {
+        showMsg(msg, '❌ ' + errores + ' error(es) al guardar.', false);
+      }
+    });
+
+  } catch(e) {
+    wrap.innerHTML = '<p style="color:var(--text-2);padding:20px">Error: ' + e.message + '</p>';
+  }
 }
