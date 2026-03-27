@@ -1,5 +1,5 @@
 // ── CONFIG ──────────────────────────────────────────────
-const APPS_SCRIPT_URL = 'TU_URL_APPS_SCRIPT_AQUI'; // ← reemplaza con tu URL
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxxRb-4KNDdhR-6di4vXbWwpos6eN1SMOo3j7SIktIfWWDOH3_er8MwjQSoAOwFPO8/exec'; 
 const FIREBASE_BUCKET = 'seguimiento-ventas-manuel.firebasestorage.app'; // ← o el del cliente
 const GALERIA_FOLDER  = 'galeria_v2/';
 const PASS_KEY        = btoa('Ventas2025'); // contraseña de ventas (sync con Config.gs)
