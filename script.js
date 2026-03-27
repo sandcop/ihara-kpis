@@ -18,7 +18,7 @@ document.getElementById('login-btn').addEventListener('click', doLogin);
 document.getElementById('login-input').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
 function doLogin() {
-  const pwd = document.getElementById('login-input').value;
+  const pwd = document.getElementById('login-input').value.trim();
   const err = document.getElementById('login-error');
   if (btoa(pwd) === PASS_KEY || pwd === 'Admin2025') {
     setAuth();
