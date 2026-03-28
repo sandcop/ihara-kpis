@@ -41,6 +41,7 @@ async function initApp() {
   initFormVenta();
   initCodigos();
   initPersonalizacion();
+  initAceleradoresControls();
   updateTime();
   setInterval(updateTime, 30000);
   // Cargar sección inicial
@@ -202,12 +203,7 @@ document.getElementById('btn-refresh-kpis').addEventListener('click', () => { ca
 document.addEventListener('DOMContentLoaded', () => {
   initAceleradoresControls();
 });
-// También inicializar después del login
-const _origInitApp = initApp;
-async function initApp() {
-  await _origInitApp();
-  initAceleradoresControls();
-}
+
 
 // ── ACELERADORES ─────────────────────────────────────────
 async function cargarAceleradores() {
