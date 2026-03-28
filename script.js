@@ -156,7 +156,7 @@ async function cargarKPIs() {
     const porc = res.resumen.cumplimiento;
     const comp = res.resumen.comision;
     document.getElementById('cumpl-porc').textContent     = formatPorc(porc);
-    document.getElementById('cumpl-comision').textContent = formatMoney(comp);
+    document.getElementById('cumpl-comision').textContent = formatMoney(res.resumen.factorPPM || comp);
 
     // Cards
     grid.innerHTML = '';
@@ -169,11 +169,17 @@ async function cargarKPIs() {
       const card = document.createElement('div');
       card.className = 'kpi-card';
       card.style.setProperty('--kpi-color', color);
+      // ISN y NBA tienen valores porcentuales (0.9 = 90%, 0.85 = 85%)
+      const esPorc = ['ISN','ADHESION_NBA'].includes(kpi.id);
+      // Botón + para TERMINALES
+      const btnTerminales = kpi.id === 'TERMINALES' ? `<button class="btn-sm btn-ghost kpi-detail-btn" data-kpi="${kpi.id}" style="margin-top:8px;font-size:0.72rem">+ Ver modelos</button>` : '';
+      // Botón + para FO_TERMINADA
+      const btnFO = kpi.id === 'FO_TERMINADA' ? `<button class="btn-sm btn-ghost kpi-detail-btn" data-kpi="${kpi.id}" style="margin-top:8px;font-size:0.72rem">+ Ver instalaciones</button>` : '';
       card.innerHTML = `
         <div class="kpi-card-id">${kpi.id || ''}</div>
         <div class="kpi-card-desc">${kpi.descripcion || ''}</div>
-        <div class="kpi-card-val">${formatVal(kpi.real)}</div>
-        <div class="kpi-card-meta">Meta: ${formatVal(kpi.meta)}${tieneAporte ? ' · Peso: ' + formatPorc(kpi.peso) : ''}</div>
+        <div class="kpi-card-val">${esPorc ? formatVal(kpi.real, true) : formatVal(kpi.real)}</div>
+        <div class="kpi-card-meta">Meta: ${esPorc ? formatVal(kpi.meta, true) : formatVal(kpi.meta)}${tieneAporte ? ' · Peso: ' + formatPorc(kpi.peso) : ''}</div>
         ${tieneAporte ? `<div class="kpi-progress-wrap">
           <div class="kpi-progress-track"><div class="kpi-progress-fill" style="width:${porcPct}%"></div></div>
           <div class="kpi-progress-label">${formatPorc(porcVal)}${kpi.aporte ? ' · Aporte: ' + formatPorc(kpi.aporte) : ''}</div>
@@ -181,6 +187,7 @@ async function cargarKPIs() {
           <div class="kpi-progress-track"><div class="kpi-progress-fill" style="width:${porcPct}%"></div></div>
           <div class="kpi-progress-label">${formatPorc(porcVal)}</div>
         </div>`}
+        ${btnTerminales}${btnFO}
       `;
       grid.appendChild(card);
     });
@@ -190,6 +197,17 @@ async function cargarKPIs() {
 }
 
 document.getElementById('btn-refresh-kpis').addEventListener('click', () => { cargarKPIs(); cargarAceleradores(); });
+
+// Inicializar controles aceleradores cuando se carga la sección
+document.addEventListener('DOMContentLoaded', () => {
+  initAceleradoresControls();
+});
+// También inicializar después del login
+const _origInitApp = initApp;
+async function initApp() {
+  await _origInitApp();
+  initAceleradoresControls();
+}
 
 // ── ACELERADORES ─────────────────────────────────────────
 async function cargarAceleradores() {
@@ -209,7 +227,7 @@ async function cargarAceleradores() {
       { title: 'Voz Móvil',        msg: a.voz,            color: '#6c5ce7' },
       { title: 'Fibra Óptica',     msg: a.fo,             color: '#0984e3' },
       { title: 'Terminales',       msg: a.terminales,     color: '#e17055' },
-      { title: 'Oferta Especial',  msg: a.ofertaEspecial, color: '#00b894' },
+      { title: 'Incentivo Terminales', msg: a.ofertaEspecial, color: '#00b894' },
     ];
 
     grid.innerHTML = '';
@@ -293,7 +311,7 @@ async function initFormVenta() {
         const r = res.reglas.find(x => x.codigoProducto === cod);
         const opt = document.createElement('option');
         opt.value = cod;
-        opt.textContent = cod + (r?.nombrePlan ? ' — ' + r.nombrePlan : '');
+        opt.textContent = cod;
         selCod.appendChild(opt);
       });
     }
@@ -703,13 +721,16 @@ function toast(text, type = 'ok') {
   setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
 }
 
-function formatVal(v) {
+function formatVal(v, esPorc) {
   if (v === null || v === undefined || v === '') return '—';
   if (typeof v === 'number') {
     if (v === 0) return '0';
     if (Math.abs(v) >= 1000) return '$' + v.toLocaleString('es-CL');
+    // Si es porcentaje (entre 0 y 2, con decimales) mostrar como %
+    if (esPorc || (v > 0 && v <= 2 && v % 1 !== 0)) return (v * 100).toFixed(0) + '%';
     return v % 1 === 0 ? v.toString() : v.toFixed(1);
   }
+  if (typeof v === 'string' && v.includes('%')) return v;
   return v.toString();
 }
 
@@ -754,7 +775,7 @@ async function cargarMetas() {
         <div class="meta-edit">
           <input class="meta-input" type="text" value="${m.meta}" data-kpi="${m.kpiId}" placeholder="Meta">
           <span class="meta-tipo">${m.tipoMeta || ''}</span>
-          <span class="meta-peso">${m.pesoPPM || ''}</span>
+          <span class="meta-peso">${typeof m.pesoPPM === 'number' ? (m.pesoPPM*100).toFixed(0)+'%' : (m.pesoPPM||'')}</span>
         </div>
       `;
       wrap.appendChild(row);
@@ -807,3 +828,188 @@ async function cargarMetas() {
     wrap.innerHTML = '<p style="color:var(--text-2);padding:20px">Error: ' + e.message + '</p>';
   }
 }
+
+// ── POPUP TERMINALES / FO ─────────────────────────────────
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.kpi-detail-btn');
+  if (!btn) return;
+  const kpi = btn.dataset.kpi;
+  if (kpi === 'TERMINALES') abrirPopupTerminales();
+  if (kpi === 'FO_TERMINADA') abrirPopupFO();
+});
+
+async function abrirPopupTerminales() {
+  const popup = crearPopupBase('📦 Modelos vendidos – Terminales');
+  popup.querySelector('.popup-body').innerHTML = '<div class="loader-wrap"><div class="spinner"></div></div>';
+  try {
+    const res = await get('getventasmes');
+    if (!res.success) throw new Error(res.error);
+    const equipos = res.ventas.filter(v => v.categoriaRegla === 'Equipos' || v.tipoKPIPrincipal === 'TERMINALES');
+    if (equipos.length === 0) {
+      popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2);padding:20px">Sin terminales registrados este mes.</p>';
+      return;
+    }
+    // Agrupar por modelo
+    const modelos = {};
+    equipos.forEach(v => {
+      const m = v.modeloEquipo || 'Sin modelo';
+      modelos[m] = (modelos[m] || 0) + (parseInt(v.cantidadVendida) || 1);
+    });
+    popup.querySelector('.popup-body').innerHTML = `
+      <table class="data-table">
+        <thead><tr><th>Modelo</th><th>Cantidad</th></tr></thead>
+        <tbody>${Object.entries(modelos).map(([m,c]) => `<tr><td>${m}</td><td><strong>${c}</strong></td></tr>`).join('')}</tbody>
+      </table>`;
+  } catch(e) {
+    popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2);padding:20px">Error: ' + e.message + '</p>';
+  }
+}
+
+async function abrirPopupFO() {
+  const popup = crearPopupBase('🌐 Ventas FO – Instalaciones');
+  popup.querySelector('.popup-body').innerHTML = '<div class="loader-wrap"><div class="spinner"></div></div>';
+  try {
+    const res = await get('getventasfo');
+    if (!res.success) throw new Error(res.error);
+    if (res.ventas.length === 0) {
+      popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2);padding:20px">Sin ventas FO este mes.</p>';
+      return;
+    }
+    const rows = res.ventas.map((v, idx) => `
+      <tr>
+        <td>${v.fecha || '—'}</td>
+        <td>${v.nombre || '—'}</td>
+        <td>${v.codigoProducto || '—'}</td>
+        <td>${v.orden || '—'}</td>
+        <td>
+          <button class="btn-fo-toggle ${v.instalacionFO ? 'fo-si' : 'fo-no'}" 
+            data-fila="${v.filaReal}" 
+            data-estado="${v.instalacionFO}">
+            ${v.instalacionFO ? '✅ Instalada' : '❌ Pendiente'}
+          </button>
+        </td>
+      </tr>`).join('');
+    popup.querySelector('.popup-body').innerHTML = `
+      <table class="data-table">
+        <thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Orden</th><th>IsntalaciónFO</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+
+    // Evento para editar IsntalaciónFO
+    popup.querySelectorAll('.btn-fo-toggle').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const fila     = btn.dataset.fila;
+        const estadoActual = btn.dataset.estado === 'true';
+        const nuevoEstado  = !estadoActual;
+        const pwd = prompt('Contraseña para editar:');
+        if (!pwd) return;
+        try {
+          const r = await post('editarInstalacionFO', { fila: parseInt(fila), valor: nuevoEstado, password: pwd });
+          if (r.success) {
+            btn.dataset.estado = nuevoEstado;
+            btn.textContent    = nuevoEstado ? '✅ Instalada' : '❌ Pendiente';
+            btn.className      = 'btn-fo-toggle ' + (nuevoEstado ? 'fo-si' : 'fo-no');
+            toast('Actualizado', 'ok');
+          } else {
+            toast('Error: ' + r.error, 'err');
+          }
+        } catch(e) { toast('Error: ' + e.message, 'err'); }
+      });
+    });
+  } catch(e) {
+    popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2);padding:20px">Error: ' + e.message + '</p>';
+  }
+}
+
+// ── POPUP ACELERADORES EDITAR ─────────────────────────────
+function initAceleradoresControls() {
+  const btnOcultar = document.getElementById('acel-btn-ocultar');
+  const btnEditar  = document.getElementById('acel-btn-editar');
+  const acelSection = document.getElementById('acel-grid');
+  const acelTotal   = document.getElementById('acel-total-wrap');
+  let oculto = false;
+
+  if (btnOcultar) {
+    btnOcultar.addEventListener('click', () => {
+      oculto = !oculto;
+      acelSection.style.display = oculto ? 'none' : '';
+      if (acelTotal) acelTotal.style.display = oculto ? 'none' : '';
+      btnOcultar.textContent = oculto ? '👁 Mostrar aceleradores' : '🙈 Ocultar aceleradores';
+    });
+  }
+
+  if (btnEditar) {
+    btnEditar.addEventListener('click', () => abrirPopupEditarAceleradores());
+  }
+}
+
+async function abrirPopupEditarAceleradores() {
+  const popup = crearPopupBase('✏️ Editar Aceleradores');
+  try {
+    const res = await get('getaceleradores');
+    const a   = res.success ? res.aceleradores : {};
+    popup.querySelector('.popup-body').innerHTML = `
+      <p style="font-size:0.82rem;color:var(--text-2);margin-bottom:16px">Edita el texto de cada acelerador. Se guardará en la hoja Aceleradores.</p>
+      <div class="field"><label>Voz Móvil (A2)</label><textarea class="acel-edit-input" rows="2" data-celda="A2">${a.voz || ''}</textarea></div>
+      <div class="field" style="margin-top:12px"><label>Fibra Óptica (A3)</label><textarea class="acel-edit-input" rows="2" data-celda="A3">${a.fo || ''}</textarea></div>
+      <div class="field" style="margin-top:12px"><label>Terminales (A4)</label><textarea class="acel-edit-input" rows="2" data-celda="A4">${a.terminales || ''}</textarea></div>
+      <div class="field" style="margin-top:12px"><label>Incentivo Terminales (A5)</label><textarea class="acel-edit-input" rows="2" data-celda="A5">${a.ofertaEspecial || ''}</textarea></div>
+      <div class="form-actions" style="margin-top:16px">
+        <div class="field" style="flex:1;max-width:220px"><label>Contraseña admin</label><input type="password" id="acel-edit-pwd" placeholder="Contraseña"></div>
+        <button class="btn-accent" id="acel-guardar-btn">Guardar →</button>
+      </div>
+      <p class="form-msg" id="acel-edit-msg"></p>
+    `;
+
+    document.getElementById('acel-guardar-btn').addEventListener('click', async () => {
+      const pwd = document.getElementById('acel-edit-pwd').value;
+      const msg = document.getElementById('acel-edit-msg');
+      if (!pwd) { showMsg(msg, 'Ingresa la contraseña.', false); return; }
+      const inputs = popup.querySelectorAll('.acel-edit-input');
+      const cambios = Array.from(inputs).map(i => ({ celda: i.dataset.celda, valor: i.value }));
+      try {
+        const r = await post('editarAceleradores', { cambios, password: pwd });
+        if (r.success) {
+          showMsg(msg, '✅ Aceleradores guardados.', true);
+          toast('Aceleradores actualizados', 'ok');
+          cargarAceleradores();
+        } else {
+          showMsg(msg, '❌ ' + (r.error || 'Error'), false);
+        }
+      } catch(e) { showMsg(msg, '❌ ' + e.message, false); }
+    });
+  } catch(e) {
+    popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2)">Error: ' + e.message + '</p>';
+  }
+}
+
+// ── HELPER POPUP BASE ─────────────────────────────────────
+function crearPopupBase(titulo) {
+  // Eliminar popup anterior si existe
+  document.getElementById('generic-popup')?.remove();
+  document.getElementById('generic-overlay')?.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'generic-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999;';
+
+  const popup = document.createElement('div');
+  popup.id = 'generic-popup';
+  popup.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg-card);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.3);z-index:1000;width:90%;max-width:700px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;';
+  popup.innerHTML = `
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg-alt);">
+      <strong style="font-family:var(--font-display);font-size:1rem">${titulo}</strong>
+      <button onclick="document.getElementById('generic-popup').remove();document.getElementById('generic-overlay').remove();" 
+        style="background:none;border:none;font-size:1.3rem;color:var(--text-2);cursor:pointer;padding:0">✕</button>
+    </div>
+    <div class="popup-body" style="overflow-y:auto;padding:16px;flex:1;"></div>
+  `;
+
+  overlay.addEventListener('click', () => { popup.remove(); overlay.remove(); });
+  document.body.appendChild(overlay);
+  document.body.appendChild(popup);
+  return popup;
+}
+
+// Inicializar controles de aceleradores al cargar KPIs
+const _origCargarKPIs = cargarKPIs;
