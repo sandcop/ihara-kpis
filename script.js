@@ -4,7 +4,7 @@ const FIREBASE_BUCKET = 'seguimiento-ventas-manuel.firebasestorage.app'; // ← 
 const GALERIA_FOLDER  = 'galeria_v2/';
 const PASS_KEY        = btoa('Ventas2025'); // contraseña de ventas (sync con Config.gs)
 
-// ── STATE ────────────────────────────────────────────────
+// ── STATE ───────────────────────────────────────────────
 let galeriaFotos    = [];
 let galeriaIdx      = 0;
 let reglasCache     = [];
