@@ -199,11 +199,6 @@ async function cargarKPIs() {
 
 document.getElementById('btn-refresh-kpis').addEventListener('click', () => { cargarKPIs(); cargarAceleradores(); });
 
-// Inicializar controles aceleradores cuando se carga la sección
-document.addEventListener('DOMContentLoaded', () => {
-  initAceleradoresControls();
-});
-
 
 // ── ACELERADORES ─────────────────────────────────────────
 async function cargarAceleradores() {
@@ -233,9 +228,23 @@ async function cargarAceleradores() {
       card.className = 'acel-card';
       card.style.setProperty('--acel-color', item.color);
       card.innerHTML = `
-        <div class="acel-card-title">${item.title}</div>
-        <div class="acel-card-msg">${item.msg}</div>
+        <div class="acel-card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <div class="acel-card-title" style="margin-bottom:0">${item.title}</div>
+          <button class="acel-hide-btn" title="Ocultar" style="background:none;border:none;cursor:pointer;font-size:1rem;color:var(--text-2);padding:0 0 0 8px;line-height:1;">🙈</button>
+        </div>
+        <div class="acel-card-body">
+          <div class="acel-card-msg">${item.msg}</div>
+        </div>
       `;
+      // Toggle ocultar mensaje
+      const btn  = card.querySelector('.acel-hide-btn');
+      const body = card.querySelector('.acel-card-body');
+      btn.addEventListener('click', () => {
+        const oculto = body.style.display === 'none';
+        body.style.display = oculto ? '' : 'none';
+        btn.textContent    = oculto ? '🙈' : '👁';
+        btn.title          = oculto ? 'Ocultar' : 'Mostrar';
+      });
       grid.appendChild(card);
     });
 
@@ -293,57 +302,113 @@ async function cargarFaltantes() {
 }
 
 // ── FORMULARIO VENTA ─────────────────────────────────────
+// Mapa de categoría → códigos de producto y tipos de entrada válidos (según ReglasEntradasEquivalentes)
+const CATEGORIA_MAP = {
+  'Móvil': {
+    codigos: ['Cod_3NA','Cod_3LN','Cod_3LM','Cod_3JB','Cod_Migracion','Cod_PPT'],
+    entradas: ['Alta Normal','Portada Prepago','Portada Postpago',
+               'Alta Totalización','Porta Pre Totalizada','Porta Post Totalizada',
+               'Alta Completación','Porta Pre Completación','Porta Post Completación',
+               'Alta Migrada','Alta Ppt']
+  },
+  'Fijo': {
+    codigos: ['IFO400/400','IFO400/400_TV','IFO500/500','IFO500/500_TV',
+              'IFO600/600','IFO600/600_TV','IFO800/800','IFO800/800_TV',
+              'IFO940/940','IFO940/940_TV','IFO400/400_TOT','IFO400/400_TOT',
+              'IFO600/600_TOT','IFO600/600_TOT_TV','IFO800/800_TOT','IFO800/800_TOT_TV',
+              'IFO940/940_TOT','IFO940/940_TOT_TV'],
+    entradas: ['Solo BAF','BAF+TV Paquet.','Solo BAF Tota','BAF+TV Paq.Tota']
+  },
+  'Equipos': {
+    codigos: ['Movistar One','Recambio','Alta con equipo'],
+    entradas: ['MIXTO','INTERNO','FULL PRICE','PAGO EXTERNO','DIFERENCIADO',
+               'ALTA DIFERENCIADO','ALTA CON MONE','RECOMPRA']
+  },
+  'ACCESORIOS': {
+    codigos: ['APAC','OMNICANALIDAD'],
+    entradas: ['Venta Accesorio']
+  }
+};
+
 async function initFormVenta() {
-  // Cargar reglas para el select de código y auto-detección
+  // Cargar reglas
   try {
     const res = await get('getreglasentradas');
-    if (res.success) {
-      reglasCache = res.reglas;
-      // Poblar select de código producto
-      const selCod = document.getElementById('vf-codigo');
-      // Obtener códigos únicos
-      const codsUnicos = [...new Set(res.reglas.map(r => r.codigoProducto))].filter(Boolean);
-      codsUnicos.forEach(cod => {
-        const r = res.reglas.find(x => x.codigoProducto === cod);
-        const opt = document.createElement('option');
-        opt.value = cod;
-        opt.textContent = cod;
-        selCod.appendChild(opt);
-      });
-    }
+    if (res.success) reglasCache = res.reglas;
   } catch(_) {}
 
-  // Auto-detectar EntradasEquivPorUnidad cuando cambian KPI, Código o TipoEntrada
-  const selKPI      = document.getElementById('vf-tipo-kpi');
-  const selCod      = document.getElementById('vf-codigo');
-  const selEntrada  = document.getElementById('vf-tipo-entrada');
-  const inpCantidad = document.getElementById('vf-cantidad');
-  const inpEquivUnit= document.getElementById('vf-entradas-unit');
-  const inpEquivTot = document.getElementById('vf-entradas-total');
+  const selCategoria = document.getElementById('vf-categoria');
+  const selCod       = document.getElementById('vf-codigo');
+  const selEntrada   = document.getElementById('vf-tipo-entrada');
+  const inpCantidad  = document.getElementById('vf-cantidad');
+  const inpEquivUnit = document.getElementById('vf-entradas-unit');
+  const inpEquivTot  = document.getElementById('vf-entradas-total');
+
+  // Guardar todas las opciones originales del HTML para restaurar
+  const todasOpcCod     = Array.from(selCod.options).slice(1);     // skip placeholder
+  const todasOpcEntrada = Array.from(selEntrada.options).slice(1); // skip placeholder
+
+  function filtrarPorCategoria() {
+    const cat = selCategoria.value;
+    const map = CATEGORIA_MAP[cat];
+
+    // Restaurar y filtrar Código Producto
+    selCod.innerHTML = '<option value="">— Selecciona —</option>';
+    if (map) {
+      // Usar reglas del backend si están disponibles, si no usar el mapa estático
+      let codigos = map.codigos;
+      if (reglasCache.length > 0) {
+        // Obtener códigos que existen en reglasCache y pertenecen a esta categoría
+        const codsBackend = [...new Set(
+          reglasCache
+            .filter(r => map.codigos.some(c => r.codigoProducto && r.codigoProducto.toString().includes(c.replace('Cod_',''))) || map.codigos.includes(r.codigoProducto))
+            .map(r => r.codigoProducto)
+        )].filter(Boolean);
+        if (codsBackend.length > 0) codigos = codsBackend;
+      }
+      codigos.forEach(cod => {
+        const opt = document.createElement('option');
+        opt.value = cod; opt.textContent = cod;
+        selCod.appendChild(opt);
+      });
+    } else {
+      // Sin categoría: mostrar todos
+      todasOpcCod.forEach(o => selCod.appendChild(o.cloneNode(true)));
+    }
+
+    // Restaurar y filtrar Tipo Entrada
+    selEntrada.innerHTML = '<option value="">— Selecciona —</option>';
+    if (map) {
+      map.entradas.forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e; opt.textContent = e;
+        selEntrada.appendChild(opt);
+      });
+    } else {
+      todasOpcEntrada.forEach(o => selEntrada.appendChild(o.cloneNode(true)));
+    }
+
+    // Reset valores dependientes
+    selCod.value = ''; selEntrada.value = '';
+    inpEquivUnit.value = ''; inpEquivTot.value = '';
+  }
 
   function buscarEntradasEquiv() {
     const codigo  = selCod.value.trim();
     const entrada = selEntrada.value.trim();
-    if (!codigo || !entrada) {
-      inpEquivUnit.value = '';
-      inpEquivTot.value  = '';
-      return;
-    }
-    // Buscar en cache de reglas: match por codigoProducto + tipoEntrada
-    const regla = reglasCache.find(r =>
-      r.codigoProducto === codigo && r.tipoEntrada === entrada
-    );
+    if (!codigo || !entrada) { inpEquivUnit.value = ''; inpEquivTot.value = ''; return; }
+    const regla = reglasCache.find(r => r.codigoProducto === codigo && r.tipoEntrada === entrada);
     if (regla && regla.valorEntradaEquiv !== '' && regla.valorEntradaEquiv !== null) {
       const valUnit = parseFloat(regla.valorEntradaEquiv) || 0;
       const cant    = parseFloat(inpCantidad.value) || 1;
       inpEquivUnit.value = valUnit;
       inpEquivTot.value  = (valUnit * cant).toFixed(2);
     } else {
-      inpEquivUnit.value = '';
-      inpEquivTot.value  = '';
+      inpEquivUnit.value = ''; inpEquivTot.value = '';
     }
   }
 
+  selCategoria.addEventListener('change', filtrarPorCategoria);
   selCod.addEventListener('change', buscarEntradasEquiv);
   selEntrada.addEventListener('change', buscarEntradasEquiv);
   inpCantidad.addEventListener('input', buscarEntradasEquiv);
@@ -366,26 +431,26 @@ async function initFormVenta() {
 
     const form = e.target;
     const data = {
-      fecha:           form.fecha.value,
-      suscripcion:     form.suscripcion.value,
-      aloha:           form.aloha.value,
-      rut:             form.rut.value,
-      nombreCompleto:  form.nombreCompleto.value,
-      codigoProducto:  form.codigoProducto.value,
+      fecha:            form.fecha.value,
+      suscripcion:      form.suscripcion.value,
+      aloha:            form.aloha.value,
+      rut:              form.rut.value,
+      nombreCompleto:   form.nombreCompleto.value,
+      codigoProducto:   form.codigoProducto.value,
       tipoKPIPrincipal: document.getElementById('vf-tipo-kpi').value,
-      categoriaRegla:  document.getElementById('vf-categoria').value,
+      categoriaRegla:   document.getElementById('vf-categoria').value,
       tipoEntradaRegla: document.getElementById('vf-tipo-entrada').value,
       cantidadVendida:  form.cantidadVendida.value,
       entradasEquivUnit: document.getElementById('vf-entradas-unit').value,
-      totalEntradas:     document.getElementById('vf-entradas-total').value,
-      orden:           form.orden.value,
-      modeloEquipo:    form.modeloEquipo.value,
-      valorEquipo:     form.valorEquipo.value,
-      montoAccesorio:  form.montoAccesorio.value,
-      nombreAccesorio: form.nombreAccesorio.value,
-      rgu:             form.rgu.value,
-      seguro:          form.seguro.checked,
-      instalacionFO:   form.instalacionFO.checked
+      totalEntradas:    document.getElementById('vf-entradas-total').value,
+      orden:            form.orden.value,
+      modeloEquipo:     form.modeloEquipo.value,
+      valorEquipo:      form.valorEquipo.value,
+      montoAccesorio:   form.montoAccesorio.value,
+      nombreAccesorio:  form.nombreAccesorio.value,
+      rgu:              form.rgu.value,
+      seguro:           form.seguro.checked,
+      instalacionFO:    form.instalacionFO.checked
     };
 
     try {
@@ -394,6 +459,8 @@ async function initFormVenta() {
         showMsg(msg, '✅ ' + res.message, true);
         form.reset();
         document.getElementById('vf-fecha').valueAsDate = new Date();
+        selCod.innerHTML     = '<option value="">— Selecciona —</option>';
+        selEntrada.innerHTML = '<option value="">— Selecciona —</option>';
         cargarUltimaVenta();
         toast('Venta registrada', 'ok');
       } else {
@@ -1006,6 +1073,3 @@ function crearPopupBase(titulo) {
   document.body.appendChild(popup);
   return popup;
 }
-
-// Inicializar controles de aceleradores al cargar KPIs
-const _origCargarKPIs = cargarKPIs;
