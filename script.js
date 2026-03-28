@@ -44,7 +44,6 @@ async function initApp() {
   initAceleradoresControls();
   updateTime();
   setInterval(updateTime, 30000);
-  // Cargar sección inicial
   navigateTo('inicio');
 }
 
@@ -204,7 +203,6 @@ document.getElementById('btn-refresh-kpis').addEventListener('click', () => { ca
 async function cargarAceleradores() {
   const grid     = document.getElementById('acel-grid');
   const totalWrap= document.getElementById('acel-total-wrap');
-  const totalVal = document.getElementById('acel-total-val');
   if (!grid) return;
   grid.innerHTML = '<div class="loader-wrap"><div class="spinner"></div></div>';
 
@@ -213,12 +211,11 @@ async function cargarAceleradores() {
     if (!res.success) throw new Error(res.error);
 
     const a = res.aceleradores;
-    // Los mensajes vienen directo desde la hoja Aceleradores
     const items = [
-      { title: 'Voz Móvil',        msg: a.voz,            color: '#6c5ce7' },
-      { title: 'Fibra Óptica',     msg: a.fo,             color: '#0984e3' },
-      { title: 'Terminales',       msg: a.terminales,     color: '#e17055' },
-      { title: 'Incentivo Terminales', msg: a.ofertaEspecial, color: '#00b894' },
+      { title: 'Voz Móvil',            msg: a.voz,             color: '#6c5ce7' },
+      { title: 'Fibra Óptica',         msg: a.fo,              color: '#0984e3' },
+      { title: 'Terminales',           msg: a.terminales,      color: '#e17055' },
+      { title: 'Incentivo Terminales', msg: a.ofertaEspecial,  color: '#00b894' },
     ];
 
     grid.innerHTML = '';
@@ -227,28 +224,34 @@ async function cargarAceleradores() {
       const card = document.createElement('div');
       card.className = 'acel-card';
       card.style.setProperty('--acel-color', item.color);
-      card.innerHTML = `
-        <div class="acel-card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-          <div class="acel-card-title" style="margin-bottom:0">${item.title}</div>
-          <button class="acel-hide-btn" title="Ocultar" style="background:none;border:none;cursor:pointer;font-size:1rem;color:var(--text-2);padding:0 0 0 8px;line-height:1;">🙈</button>
-        </div>
-        <div class="acel-card-body">
-          <div class="acel-card-msg">${item.msg}</div>
-        </div>
-      `;
-      // Toggle ocultar mensaje
-      const btn  = card.querySelector('.acel-hide-btn');
-      const body = card.querySelector('.acel-card-body');
-      btn.addEventListener('click', () => {
+
+      const titleRow = document.createElement('div');
+      titleRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;';
+      titleRow.innerHTML = `<div class="acel-card-title" style="margin-bottom:0">${item.title}</div>`;
+
+      const btnOc = document.createElement('button');
+      btnOc.textContent = '🙈';
+      btnOc.title = 'Ocultar';
+      btnOc.style.cssText = 'background:none;border:none;cursor:pointer;font-size:1rem;color:var(--text-2);padding:0;line-height:1;flex-shrink:0;';
+
+      const body = document.createElement('div');
+      body.className = 'acel-card-msg';
+      body.textContent = item.msg;
+
+      btnOc.addEventListener('click', () => {
         const oculto = body.style.display === 'none';
         body.style.display = oculto ? '' : 'none';
-        btn.textContent    = oculto ? '🙈' : '👁';
-        btn.title          = oculto ? 'Ocultar' : 'Mostrar';
+        btnOc.textContent  = oculto ? '🙈' : '👁';
+        btnOc.title        = oculto ? 'Ocultar' : 'Mostrar';
       });
+
+      titleRow.appendChild(btnOc);
+      card.appendChild(titleRow);
+      card.appendChild(body);
       grid.appendChild(card);
     });
 
-    totalWrap.style.display = 'none';
+    if (totalWrap) totalWrap.style.display = 'none';
 
   } catch(e) {
     grid.innerHTML = '<p style="color:var(--text-2);padding:20px">Error cargando aceleradores: ' + e.message + '</p>';
@@ -302,36 +305,11 @@ async function cargarFaltantes() {
 }
 
 // ── FORMULARIO VENTA ─────────────────────────────────────
-// Mapa de categoría → códigos de producto y tipos de entrada válidos (según ReglasEntradasEquivalentes)
-const CATEGORIA_MAP = {
-  'Móvil': {
-    codigos: ['Cod_3NA','Cod_3LN','Cod_3LM','Cod_3JB','Cod_Migracion','Cod_PPT'],
-    entradas: ['Alta Normal','Portada Prepago','Portada Postpago',
-               'Alta Totalización','Porta Pre Totalizada','Porta Post Totalizada',
-               'Alta Completación','Porta Pre Completación','Porta Post Completación',
-               'Alta Migrada','Alta Ppt']
-  },
-  'Fijo': {
-    codigos: ['IFO400/400','IFO400/400_TV','IFO500/500','IFO500/500_TV',
-              'IFO600/600','IFO600/600_TV','IFO800/800','IFO800/800_TV',
-              'IFO940/940','IFO940/940_TV','IFO400/400_TOT','IFO400/400_TOT',
-              'IFO600/600_TOT','IFO600/600_TOT_TV','IFO800/800_TOT','IFO800/800_TOT_TV',
-              'IFO940/940_TOT','IFO940/940_TOT_TV'],
-    entradas: ['Solo BAF','BAF+TV Paquet.','Solo BAF Tota','BAF+TV Paq.Tota']
-  },
-  'Equipos': {
-    codigos: ['Movistar One','Recambio','Alta con equipo'],
-    entradas: ['MIXTO','INTERNO','FULL PRICE','PAGO EXTERNO','DIFERENCIADO',
-               'ALTA DIFERENCIADO','ALTA CON MONE','RECOMPRA']
-  },
-  'ACCESORIOS': {
-    codigos: ['APAC','OMNICANALIDAD'],
-    entradas: ['Venta Accesorio']
-  }
-};
+// Categorías válidas (deben coincidir exactamente con col H de ReglasEntradasEquivalentes)
+const CATEGORIAS_VALIDAS = ['Móvil', 'Fijo', 'Equipos', 'ACCESORIOS'];
 
 async function initFormVenta() {
-  // Cargar reglas
+  // Cargar todas las reglas del backend
   try {
     const res = await get('getreglasentradas');
     if (res.success) reglasCache = res.reglas;
@@ -344,53 +322,49 @@ async function initFormVenta() {
   const inpEquivUnit = document.getElementById('vf-entradas-unit');
   const inpEquivTot  = document.getElementById('vf-entradas-total');
 
-  // Guardar todas las opciones originales del HTML para restaurar
-  const todasOpcCod     = Array.from(selCod.options).slice(1);     // skip placeholder
-  const todasOpcEntrada = Array.from(selEntrada.options).slice(1); // skip placeholder
+  function poblarSelect(sel, opciones, placeholder) {
+    sel.innerHTML = `<option value="">${placeholder}</option>`;
+    opciones.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v; opt.textContent = v;
+      sel.appendChild(opt);
+    });
+  }
 
   function filtrarPorCategoria() {
     const cat = selCategoria.value;
-    const map = CATEGORIA_MAP[cat];
-
-    // Restaurar y filtrar Código Producto
-    selCod.innerHTML = '<option value="">— Selecciona —</option>';
-    if (map) {
-      // Usar reglas del backend si están disponibles, si no usar el mapa estático
-      let codigos = map.codigos;
-      if (reglasCache.length > 0) {
-        // Obtener códigos que existen en reglasCache y pertenecen a esta categoría
-        const codsBackend = [...new Set(
-          reglasCache
-            .filter(r => map.codigos.some(c => r.codigoProducto && r.codigoProducto.toString().includes(c.replace('Cod_',''))) || map.codigos.includes(r.codigoProducto))
-            .map(r => r.codigoProducto)
-        )].filter(Boolean);
-        if (codsBackend.length > 0) codigos = codsBackend;
-      }
-      codigos.forEach(cod => {
-        const opt = document.createElement('option');
-        opt.value = cod; opt.textContent = cod;
-        selCod.appendChild(opt);
-      });
-    } else {
-      // Sin categoría: mostrar todos
-      todasOpcCod.forEach(o => selCod.appendChild(o.cloneNode(true)));
-    }
-
-    // Restaurar y filtrar Tipo Entrada
-    selEntrada.innerHTML = '<option value="">— Selecciona —</option>';
-    if (map) {
-      map.entradas.forEach(e => {
-        const opt = document.createElement('option');
-        opt.value = e; opt.textContent = e;
-        selEntrada.appendChild(opt);
-      });
-    } else {
-      todasOpcEntrada.forEach(o => selEntrada.appendChild(o.cloneNode(true)));
-    }
-
-    // Reset valores dependientes
-    selCod.value = ''; selEntrada.value = '';
     inpEquivUnit.value = ''; inpEquivTot.value = '';
+
+    if (!cat) {
+      poblarSelect(selCod,     [], '— Selecciona categoría primero —');
+      poblarSelect(selEntrada, [], '— Selecciona categoría primero —');
+      return;
+    }
+
+    // Obtener códigos únicos de esa categoría desde el cache del backend
+    const reglasCategoria = reglasCache.filter(r =>
+      (r.categoria || '').toString().trim() === cat
+    );
+
+    const codigos  = [...new Set(reglasCategoria.map(r => r.codigoProducto).filter(Boolean))];
+    const entradas = [...new Set(reglasCategoria.map(r => r.tipoEntrada).filter(Boolean))];
+
+    poblarSelect(selCod,     codigos,  '— Selecciona código —');
+    poblarSelect(selEntrada, entradas, '— Selecciona tipo entrada —');
+  }
+
+  function filtrarEntradasPorCodigo() {
+    const cat    = selCategoria.value;
+    const codigo = selCod.value;
+    inpEquivUnit.value = ''; inpEquivTot.value = '';
+    if (!cat || !codigo) return;
+
+    const entradas = [...new Set(
+      reglasCache
+        .filter(r => (r.categoria || '').trim() === cat && r.codigoProducto === codigo)
+        .map(r => r.tipoEntrada).filter(Boolean)
+    )];
+    poblarSelect(selEntrada, entradas, '— Selecciona tipo entrada —');
   }
 
   function buscarEntradasEquiv() {
@@ -409,9 +383,13 @@ async function initFormVenta() {
   }
 
   selCategoria.addEventListener('change', filtrarPorCategoria);
-  selCod.addEventListener('change', buscarEntradasEquiv);
+  selCod.addEventListener('change', () => { filtrarEntradasPorCodigo(); buscarEntradasEquiv(); });
   selEntrada.addEventListener('change', buscarEntradasEquiv);
   inpCantidad.addEventListener('input', buscarEntradasEquiv);
+
+  // Inicializar selects vacíos
+  poblarSelect(selCod,     [], '— Selecciona categoría primero —');
+  poblarSelect(selEntrada, [], '— Selecciona categoría primero —');
 
   // Fecha default = hoy
   document.getElementById('vf-fecha').valueAsDate = new Date();
@@ -459,8 +437,9 @@ async function initFormVenta() {
         showMsg(msg, '✅ ' + res.message, true);
         form.reset();
         document.getElementById('vf-fecha').valueAsDate = new Date();
-        selCod.innerHTML     = '<option value="">— Selecciona —</option>';
-        selEntrada.innerHTML = '<option value="">— Selecciona —</option>';
+        poblarSelect(selCod,     [], '— Selecciona categoría primero —');
+        poblarSelect(selEntrada, [], '— Selecciona categoría primero —');
+        inpEquivUnit.value = ''; inpEquivTot.value = '';
         cargarUltimaVenta();
         toast('Venta registrada', 'ok');
       } else {
@@ -912,16 +891,25 @@ async function abrirPopupTerminales() {
       popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2);padding:20px">Sin terminales registrados este mes.</p>';
       return;
     }
-    // Agrupar por modelo
-    const modelos = {};
+    // Agrupar por modelo + modalidad (tipoEntrada)
+    const grupos = {};
     equipos.forEach(v => {
-      const m = v.modeloEquipo || 'Sin modelo';
-      modelos[m] = (modelos[m] || 0) + (parseInt(v.cantidadVendida) || 1);
+      const modelo    = v.modeloEquipo || 'Sin modelo';
+      const modalidad = v.tipoEntrada  || v.tipoEntradaRegla || '—';
+      const key = modelo + '||' + modalidad;
+      grupos[key] = (grupos[key] || 0) + (parseInt(v.cantidadVendida) || 1);
     });
+    // Ordenar de mayor a menor
+    const filas = Object.entries(grupos)
+      .sort((a, b) => b[1] - a[1])
+      .map(([key, cant]) => {
+        const [modelo, modalidad] = key.split('||');
+        return `<tr><td>${modelo}</td><td style="color:var(--text-2);font-size:0.82rem">${modalidad}</td><td><strong>${cant}</strong></td></tr>`;
+      }).join('');
     popup.querySelector('.popup-body').innerHTML = `
       <table class="data-table">
-        <thead><tr><th>Modelo</th><th>Cantidad</th></tr></thead>
-        <tbody>${Object.entries(modelos).map(([m,c]) => `<tr><td>${m}</td><td><strong>${c}</strong></td></tr>`).join('')}</tbody>
+        <thead><tr><th>Modelo</th><th>Modalidad</th><th>Cantidad</th></tr></thead>
+        <tbody>${filas}</tbody>
       </table>`;
   } catch(e) {
     popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2);padding:20px">Error: ' + e.message + '</p>';
@@ -938,47 +926,50 @@ async function abrirPopupFO() {
       popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2);padding:20px">Sin ventas FO este mes.</p>';
       return;
     }
-    const rows = res.ventas.map((v, idx) => `
-      <tr>
+
+    // Construir tabla con DOM para que los eventos funcionen
+    const table = document.createElement('table');
+    table.className = 'data-table';
+    table.innerHTML = '<thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Orden</th><th>Instalación FO</th></tr></thead>';
+    const tbody = document.createElement('tbody');
+
+    res.ventas.forEach(v => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
         <td>${v.fecha || '—'}</td>
         <td>${v.nombre || '—'}</td>
         <td>${v.codigoProducto || '—'}</td>
         <td>${v.orden || '—'}</td>
-        <td>
-          <button class="btn-fo-toggle ${v.instalacionFO ? 'fo-si' : 'fo-no'}" 
-            data-fila="${v.filaReal}" 
-            data-estado="${v.instalacionFO}">
-            ${v.instalacionFO ? '✅ Instalada' : '❌ Pendiente'}
-          </button>
-        </td>
-      </tr>`).join('');
-    popup.querySelector('.popup-body').innerHTML = `
-      <table class="data-table">
-        <thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Orden</th><th>IsntalaciónFO</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>`;
-
-    // Evento para editar IsntalaciónFO
-    popup.querySelectorAll('.btn-fo-toggle').forEach(btn => {
+        <td></td>
+      `;
+      const tdBtn = tr.querySelector('td:last-child');
+      const btn = document.createElement('button');
+      let estado = v.instalacionFO === true || v.instalacionFO === 'true';
+      btn.className = 'btn-fo-toggle ' + (estado ? 'fo-si' : 'fo-no');
+      btn.textContent = estado ? '✅ Instalada' : '❌ Pendiente';
       btn.addEventListener('click', async () => {
-        const fila     = btn.dataset.fila;
-        const estadoActual = btn.dataset.estado === 'true';
-        const nuevoEstado  = !estadoActual;
         const pwd = prompt('Contraseña para editar:');
         if (!pwd) return;
+        const nuevoEstado = !estado;
         try {
-          const r = await post('editarInstalacionFO', { fila: parseInt(fila), valor: nuevoEstado, password: pwd });
+          const r = await post('editarInstalacionFO', { fila: parseInt(v.filaReal), valor: nuevoEstado, password: pwd });
           if (r.success) {
-            btn.dataset.estado = nuevoEstado;
-            btn.textContent    = nuevoEstado ? '✅ Instalada' : '❌ Pendiente';
-            btn.className      = 'btn-fo-toggle ' + (nuevoEstado ? 'fo-si' : 'fo-no');
+            estado = nuevoEstado;
+            btn.textContent = estado ? '✅ Instalada' : '❌ Pendiente';
+            btn.className   = 'btn-fo-toggle ' + (estado ? 'fo-si' : 'fo-no');
             toast('Actualizado', 'ok');
           } else {
             toast('Error: ' + r.error, 'err');
           }
-        } catch(e) { toast('Error: ' + e.message, 'err'); }
+        } catch(err) { toast('Error: ' + err.message, 'err'); }
       });
+      tdBtn.appendChild(btn);
+      tbody.appendChild(tr);
     });
+
+    table.appendChild(tbody);
+    popup.querySelector('.popup-body').innerHTML = '';
+    popup.querySelector('.popup-body').appendChild(table);
   } catch(e) {
     popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2);padding:20px">Error: ' + e.message + '</p>';
   }
@@ -986,21 +977,7 @@ async function abrirPopupFO() {
 
 // ── POPUP ACELERADORES EDITAR ─────────────────────────────
 function initAceleradoresControls() {
-  const btnOcultar = document.getElementById('acel-btn-ocultar');
-  const btnEditar  = document.getElementById('acel-btn-editar');
-  const acelSection = document.getElementById('acel-grid');
-  const acelTotal   = document.getElementById('acel-total-wrap');
-  let oculto = false;
-
-  if (btnOcultar) {
-    btnOcultar.addEventListener('click', () => {
-      oculto = !oculto;
-      acelSection.style.display = oculto ? 'none' : '';
-      if (acelTotal) acelTotal.style.display = oculto ? 'none' : '';
-      btnOcultar.textContent = oculto ? '👁 Mostrar aceleradores' : '🙈 Ocultar aceleradores';
-    });
-  }
-
+  const btnEditar = document.getElementById('acel-btn-editar');
   if (btnEditar) {
     btnEditar.addEventListener('click', () => abrirPopupEditarAceleradores());
   }
