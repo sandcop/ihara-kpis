@@ -1,4 +1,4 @@
-/* ── VARIABLES ───────────────────────────────────── */
+/* ── VARIABLES ─────────────────────────────────────── */
 :root {
   --accent:       #fb8500;
   --accent-dark:  #d97000;
@@ -888,3 +888,33 @@ input, select, textarea { font-family: inherit; }
   font-weight: 600;
   color: var(--accent);
 }
+
+/* ── POPUP FO / TERMINALES ──────────────────────────── */
+.btn-fo-toggle {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  transition: opacity 0.2s, transform 0.15s;
+}
+.btn-fo-toggle:hover { opacity: 0.85; transform: scale(1.04); }
+.fo-si  { background: rgba(0,184,148,0.15); color: #00b894; }
+.fo-no  { background: rgba(230,80,80,0.12); color: #e05050; }
+
+.acel-edit-input {
+  width: 100%;
+  background: var(--bg-alt);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  color: var(--text);
+  font-family: var(--font-body);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.acel-edit-input:focus { border-color: var(--accent); }
