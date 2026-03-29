@@ -212,10 +212,10 @@ async function cargarAceleradores() {
 
     const a = res.aceleradores;
     const items = [
-      { title: 'Voz Móvil',            msg: a.voz,             color: '#6c5ce7' },
-      { title: 'Fibra Óptica',         msg: a.fo,              color: '#0984e3' },
-      { title: 'Terminales',           msg: a.terminales,      color: '#e17055' },
-      { title: 'Incentivo Terminales', msg: a.ofertaEspecial,  color: '#00b894' },
+      { title: 'Voz Móvil',            msg: a.voz,            color: '#6c5ce7' },
+      { title: 'Fibra Óptica',         msg: a.fo,             color: '#0984e3' },
+      { title: 'Terminales',           msg: a.terminales,     color: '#e17055' },
+      { title: 'Incentivo Terminales', msg: a.ofertaEspecial, color: '#00b894' },
     ];
 
     grid.innerHTML = '';
@@ -225,14 +225,19 @@ async function cargarAceleradores() {
       card.className = 'acel-card';
       card.style.setProperty('--acel-color', item.color);
 
-      const titleRow = document.createElement('div');
-      titleRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;';
-      titleRow.innerHTML = `<div class="acel-card-title" style="margin-bottom:0">${item.title}</div>`;
+      // Header con título + botón ocultar individual
+      const header = document.createElement('div');
+      header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;';
+
+      const titulo = document.createElement('div');
+      titulo.className = 'acel-card-title';
+      titulo.style.marginBottom = '0';
+      titulo.textContent = item.title;
 
       const btnOc = document.createElement('button');
       btnOc.textContent = '🙈';
       btnOc.title = 'Ocultar';
-      btnOc.style.cssText = 'background:none;border:none;cursor:pointer;font-size:1rem;color:var(--text-2);padding:0;line-height:1;flex-shrink:0;';
+      btnOc.style.cssText = 'background:none;border:none;cursor:pointer;font-size:1rem;color:var(--text-2);padding:0;line-height:1;flex-shrink:0;margin-left:8px;';
 
       const body = document.createElement('div');
       body.className = 'acel-card-msg';
@@ -245,8 +250,9 @@ async function cargarAceleradores() {
         btnOc.title        = oculto ? 'Ocultar' : 'Mostrar';
       });
 
-      titleRow.appendChild(btnOc);
-      card.appendChild(titleRow);
+      header.appendChild(titulo);
+      header.appendChild(btnOc);
+      card.appendChild(header);
       card.appendChild(body);
       grid.appendChild(card);
     });
@@ -265,13 +271,14 @@ async function cargarFaltantes() {
   wrap.innerHTML  = '<div class="loader-wrap"><div class="spinner"></div></div>';
   gwrap.innerHTML = '<div class="loader-wrap"><div class="spinner"></div></div>';
   try {
-    const [rf, rg] = await Promise.all([get('getfaltantes'), get('getgestion')]);
+    // Todo viene en un solo endpoint: faltantes + gestion
+    const res = await get('getfaltantes');
 
     // Tabla faltantes
-    if (rf.success && rf.faltantes.length > 0) {
+    if (res.success && res.faltantes && res.faltantes.length > 0) {
       wrap.innerHTML = `<table class="data-table">
         <thead><tr><th>KPI</th><th>Falta p/100%</th><th>Falta p/150%</th><th>Falta p/250%</th></tr></thead>
-        <tbody>${rf.faltantes.map(f => `<tr>
+        <tbody>${res.faltantes.map(f => `<tr>
           <td><strong>${f.kpi}</strong></td>
           <td>${formatVal(f.falta100)}</td>
           <td>${formatVal(f.falta150)}</td>
@@ -282,17 +289,18 @@ async function cargarFaltantes() {
       wrap.innerHTML = '<p style="color:var(--text-2);padding:20px">Sin datos de faltantes.</p>';
     }
 
-    // Tabla gestión
-    if (rg.success && rg.items.length > 0) {
+    // Tabla gestión — viene como res.gestion (del mismo endpoint)
+    const gestion = res.gestion || [];
+    if (gestion.length > 0) {
       gwrap.innerHTML = `<table class="data-table">
         <thead><tr><th>Gestión</th><th>Entrada</th><th>Unidad</th><th>Subtotal</th><th>Resultado</th><th>Partida</th></tr></thead>
-        <tbody>${rg.items.map(i => `<tr>
+        <tbody>${gestion.map(i => `<tr>
           <td>${i.gestion}</td>
           <td>${formatVal(i.entrada)}</td>
           <td>${formatVal(i.unidad)}</td>
           <td>${formatVal(i.subtotal)}</td>
-          <td>${i.resultado !== '' ? formatVal(i.resultado) : ''}</td>
-          <td>${i.partida   !== '' ? formatVal(i.partida)   : ''}</td>
+          <td>${i.resultado !== '' && i.resultado !== undefined ? formatVal(i.resultado) : ''}</td>
+          <td>${i.partida   !== '' && i.partida   !== undefined ? formatVal(i.partida)   : ''}</td>
         </tr>`).join('')}</tbody>
       </table>`;
     } else {
@@ -305,11 +313,7 @@ async function cargarFaltantes() {
 }
 
 // ── FORMULARIO VENTA ─────────────────────────────────────
-// Categorías válidas (deben coincidir exactamente con col H de ReglasEntradasEquivalentes)
-const CATEGORIAS_VALIDAS = ['Móvil', 'Fijo', 'Equipos', 'ACCESORIOS'];
-
 async function initFormVenta() {
-  // Cargar todas las reglas del backend
   try {
     const res = await get('getreglasentradas');
     if (res.success) reglasCache = res.reglas;
@@ -332,39 +336,34 @@ async function initFormVenta() {
   }
 
   function filtrarPorCategoria() {
-    const cat = selCategoria.value;
+    const cat = selCategoria.value.trim().toLowerCase();
     inpEquivUnit.value = ''; inpEquivTot.value = '';
-
     if (!cat) {
       poblarSelect(selCod,     [], '— Selecciona categoría primero —');
       poblarSelect(selEntrada, [], '— Selecciona categoría primero —');
       return;
     }
-
-    // Obtener códigos únicos de esa categoría desde el cache del backend
+    // Comparación case-insensitive para tolerar "Accesorios" vs "ACCESORIOS"
     const reglasCategoria = reglasCache.filter(r =>
-      (r.categoria || '').toString().trim() === cat
+      (r.categoria || '').toString().trim().toLowerCase() === cat
     );
-
     const codigos  = [...new Set(reglasCategoria.map(r => r.codigoProducto).filter(Boolean))];
     const entradas = [...new Set(reglasCategoria.map(r => r.tipoEntrada).filter(Boolean))];
-
-    poblarSelect(selCod,     codigos,  '— Selecciona código —');
-    poblarSelect(selEntrada, entradas, '— Selecciona tipo entrada —');
+    poblarSelect(selCod,     codigos,  codigos.length  ? '— Selecciona código —'      : '— Sin opciones —');
+    poblarSelect(selEntrada, entradas, entradas.length ? '— Selecciona tipo entrada —' : '— Sin opciones —');
   }
 
   function filtrarEntradasPorCodigo() {
-    const cat    = selCategoria.value;
+    const cat    = selCategoria.value.trim().toLowerCase();
     const codigo = selCod.value;
     inpEquivUnit.value = ''; inpEquivTot.value = '';
     if (!cat || !codigo) return;
-
     const entradas = [...new Set(
       reglasCache
-        .filter(r => (r.categoria || '').trim() === cat && r.codigoProducto === codigo)
+        .filter(r => (r.categoria || '').trim().toLowerCase() === cat && r.codigoProducto === codigo)
         .map(r => r.tipoEntrada).filter(Boolean)
     )];
-    poblarSelect(selEntrada, entradas, '— Selecciona tipo entrada —');
+    poblarSelect(selEntrada, entradas, entradas.length ? '— Selecciona tipo entrada —' : '— Sin opciones —');
   }
 
   function buscarEntradasEquiv() {
@@ -391,10 +390,8 @@ async function initFormVenta() {
   poblarSelect(selCod,     [], '— Selecciona categoría primero —');
   poblarSelect(selEntrada, [], '— Selecciona categoría primero —');
 
-  // Fecha default = hoy
   document.getElementById('vf-fecha').valueAsDate = new Date();
 
-  // Submit
   document.getElementById('venta-form').addEventListener('submit', async e => {
     e.preventDefault();
     const pwd = document.getElementById('vf-password').value;
@@ -885,17 +882,22 @@ async function abrirPopupTerminales() {
   popup.querySelector('.popup-body').innerHTML = '<div class="loader-wrap"><div class="spinner"></div></div>';
   try {
     const res = await get('getventasmes');
-    if (!res.success) throw new Error(res.error);
-    const equipos = res.ventas.filter(v => v.categoriaRegla === 'Equipos' || v.tipoKPIPrincipal === 'TERMINALES');
+    if (!res.success) throw new Error(res.error || 'Error al cargar ventas');
+    const ventas = res.ventas || [];
+    // Filtrar equipos/terminales
+    const equipos = ventas.filter(v =>
+      (v.categoriaRegla || '').toLowerCase() === 'equipos' ||
+      (v.tipoKPIPrincipal || '') === 'TERMINALES'
+    );
     if (equipos.length === 0) {
       popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2);padding:20px">Sin terminales registrados este mes.</p>';
       return;
     }
-    // Agrupar por modelo + modalidad (tipoEntrada)
+    // Agrupar por modelo + modalidad (tipoEntrada o tipoEntradaRegla)
     const grupos = {};
     equipos.forEach(v => {
       const modelo    = v.modeloEquipo || 'Sin modelo';
-      const modalidad = v.tipoEntrada  || v.tipoEntradaRegla || '—';
+      const modalidad = v.tipoEntrada || v.tipoEntradaRegla || '—';
       const key = modelo + '||' + modalidad;
       grupos[key] = (grupos[key] || 0) + (parseInt(v.cantidadVendida) || 1);
     });
@@ -908,7 +910,7 @@ async function abrirPopupTerminales() {
       }).join('');
     popup.querySelector('.popup-body').innerHTML = `
       <table class="data-table">
-        <thead><tr><th>Modelo</th><th>Modalidad</th><th>Cantidad</th></tr></thead>
+        <thead><tr><th>Modelo</th><th>Modalidad</th><th>Cant.</th></tr></thead>
         <tbody>${filas}</tbody>
       </table>`;
   } catch(e) {
@@ -921,19 +923,19 @@ async function abrirPopupFO() {
   popup.querySelector('.popup-body').innerHTML = '<div class="loader-wrap"><div class="spinner"></div></div>';
   try {
     const res = await get('getventasfo');
-    if (!res.success) throw new Error(res.error);
-    if (res.ventas.length === 0) {
+    if (!res.success) throw new Error(res.error || 'Error al cargar FO');
+    const ventas = res.ventas || [];
+    if (ventas.length === 0) {
       popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2);padding:20px">Sin ventas FO este mes.</p>';
       return;
     }
-
-    // Construir tabla con DOM para que los eventos funcionen
+    // Construir tabla con elementos DOM para que los eventos funcionen
     const table = document.createElement('table');
     table.className = 'data-table';
     table.innerHTML = '<thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Orden</th><th>Instalación FO</th></tr></thead>';
     const tbody = document.createElement('tbody');
 
-    res.ventas.forEach(v => {
+    ventas.forEach(v => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${v.fecha || '—'}</td>
@@ -943,9 +945,9 @@ async function abrirPopupFO() {
         <td></td>
       `;
       const tdBtn = tr.querySelector('td:last-child');
-      const btn = document.createElement('button');
-      let estado = v.instalacionFO === true || v.instalacionFO === 'true';
-      btn.className = 'btn-fo-toggle ' + (estado ? 'fo-si' : 'fo-no');
+      const btn   = document.createElement('button');
+      let estado  = v.instalacionFO === true || v.instalacionFO === 'true' || v.instalacionFO === 'TRUE';
+      btn.className   = 'btn-fo-toggle ' + (estado ? 'fo-si' : 'fo-no');
       btn.textContent = estado ? '✅ Instalada' : '❌ Pendiente';
       btn.addEventListener('click', async () => {
         const pwd = prompt('Contraseña para editar:');
@@ -954,13 +956,11 @@ async function abrirPopupFO() {
         try {
           const r = await post('editarInstalacionFO', { fila: parseInt(v.filaReal), valor: nuevoEstado, password: pwd });
           if (r.success) {
-            estado = nuevoEstado;
+            estado          = nuevoEstado;
             btn.textContent = estado ? '✅ Instalada' : '❌ Pendiente';
             btn.className   = 'btn-fo-toggle ' + (estado ? 'fo-si' : 'fo-no');
             toast('Actualizado', 'ok');
-          } else {
-            toast('Error: ' + r.error, 'err');
-          }
+          } else { toast('Error: ' + r.error, 'err'); }
         } catch(err) { toast('Error: ' + err.message, 'err'); }
       });
       tdBtn.appendChild(btn);
@@ -974,6 +974,8 @@ async function abrirPopupFO() {
     popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2);padding:20px">Error: ' + e.message + '</p>';
   }
 }
+
+
 
 // ── POPUP ACELERADORES EDITAR ─────────────────────────────
 function initAceleradoresControls() {
