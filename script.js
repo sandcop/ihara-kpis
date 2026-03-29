@@ -1,5 +1,5 @@
 // ── CONFIG ──────────────────────────────────────────────
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwr12K2lrdjYjW2Fgut9uu8SRkOvuLqqd2sBtcsuUHJShfQs-vrVupjA-dJtO2TTb8v/exec'; 
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznTGSxnsCXwMxWbWOCz9TSQt2PVGvgQBi8bd0N0Xw3dvTyPBBkJlHr8enKY5syfwpC/exec'; 
 const FIREBASE_BUCKET = 'seguimiento-ventas-manuel.firebasestorage.app'; // ← o el del cliente
 const GALERIA_FOLDER  = 'galeria_v2/';
 const PASS_KEY        = btoa('Ventas2025'); // contraseña de ventas (sync con Config.gs)
