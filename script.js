@@ -1,5 +1,5 @@
 // ── CONFIG ──────────────────────────────────────────────
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwuZlF3hxy2DtPY6TxcGsq5rSRA2XUWaBhkjS5e0asMWphFZ_Y0iRRXKznFzF_SZuEH/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxjF6mN8aD_m4T14LsSWptTBOyZ-pF052NvPaIuN6VbgionvaZGuS3xHSesSRBImOIV/exec';
 const FIREBASE_BUCKET = 'seguimiento-ventas-manuel.firebasestorage.app'; // ← o el del cliente
 const GALERIA_FOLDER = 'galeria_v2/';
 const PASS_KEY = btoa('Ventas2025'); // contraseña de ventas (sync con Config.gs)
@@ -805,17 +805,30 @@ async function cargarMetas() {
 
     wrap.innerHTML = '';
     res.metas.forEach(m => {
+      const isPorcentaje = m.tipoMeta && m.tipoMeta.toString().toLowerCase() === 'porcentaje';
+      const displayMeta = isPorcentaje ? (parseFloat(m.meta) * 100) : m.meta;
+      
       const row = document.createElement('div');
       row.className = 'meta-row';
+
+      let partidaHtml = '';
+      if (m.kpiId.trim().toUpperCase() === 'GESTION DE VALOR') {
+          partidaHtml = `
+            <input class="meta-partida-input" type="number" step="any" value="${res.partidaGV || ''}" data-kpi="${m.kpiId}" placeholder="Partida" style="margin-left:8px;max-width:80px">
+            <span class="meta-tipo" style="margin-left:4px">Partida</span>
+          `;
+      }
+
       row.innerHTML = `
         <div class="meta-info">
           <span class="meta-id">${m.kpiId}</span>
           <span class="meta-desc">${m.descripcion || ''}</span>
         </div>
         <div class="meta-edit">
-          <input class="meta-input" type="text" value="${m.meta}" data-kpi="${m.kpiId}" placeholder="Meta">
+          <input class="meta-input" type="number" step="any" value="${displayMeta}" data-kpi="${m.kpiId}" data-porc="${isPorcentaje}" placeholder="Meta">
           <span class="meta-tipo">${m.tipoMeta || ''}</span>
-          <span class="meta-peso">${typeof m.pesoPPM === 'number' ? (m.pesoPPM * 100).toFixed(0) + '%' : (m.pesoPPM || '')}</span>
+          ${partidaHtml}
+          <span class="meta-peso" style="margin-left:8px">${typeof m.pesoPPM === 'number' ? (m.pesoPPM * 100).toFixed(0) + '%' : (m.pesoPPM || '')}</span>
         </div>
       `;
       wrap.appendChild(row);
@@ -847,10 +860,28 @@ async function cargarMetas() {
       let errores = 0;
       for (const inp of inputs) {
         const kpiId = inp.dataset.kpi;
-        const nuevaMeta = inp.value.trim();
-        if (!nuevaMeta) continue;
+        const isPorc = inp.dataset.porc === 'true';
+        let nuevaMetaStr = inp.value.trim();
+        if (!nuevaMetaStr) continue;
+        
+        // Si originalmente era porcentaje, dividimos entre 100 para Sheets
+        let nuevaMeta = parseFloat(nuevaMetaStr);
+        if (isPorc && !isNaN(nuevaMeta)) {
+            nuevaMeta = nuevaMeta / 100;
+        } else {
+            nuevaMeta = nuevaMetaStr;
+        }
+
+        let partida = undefined;
+        if (kpiId.trim().toUpperCase() === 'GESTION DE VALOR') {
+            const partInp = wrap.querySelector('.meta-partida-input');
+            if (partInp && partInp.value.trim() !== '') {
+                partida = parseFloat(partInp.value.trim());
+            }
+        }
+
         try {
-          const res = await post('actualizarMeta', { kpiId, nuevaMeta, password: pwd });
+          const res = await post('actualizarMeta', { kpiId, nuevaMeta, password: pwd, partida });
           if (!res.success) errores++;
         } catch (_) { errores++; }
       }
