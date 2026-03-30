@@ -1,6 +1,6 @@
 // ── CONFIG ──────────────────────────────────────────────
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxjF6mN8aD_m4T14LsSWptTBOyZ-pF052NvPaIuN6VbgionvaZGuS3xHSesSRBImOIV/exec';
-const FIREBASE_BUCKET = 'seguimiento-ventas-manuel.firebasestorage.app'; // ← o el del client
+const FIREBASE_BUCKET = 'seguimiento-ventas-manuel.firebasestorage.app'; // ← o el del cliente
 const GALERIA_FOLDER = 'galeria_v2/';
 const PASS_KEY = btoa('Ventas2025'); // contraseña de ventas (sync con Config.gs)
 
@@ -805,8 +805,14 @@ async function cargarMetas() {
 
     wrap.innerHTML = '';
     res.metas.forEach(m => {
-      const isPorcentaje = m.tipoMeta && m.tipoMeta.toString().toLowerCase() === 'porcentaje';
-      const displayMeta = isPorcentaje ? (parseFloat(m.meta) * 100) : m.meta;
+      let isFractional = false;
+      let displayMeta = m.meta;
+      
+      const isPorcType = m.tipoMeta && m.tipoMeta.toString().toLowerCase() === 'porcentaje';
+      if (isPorcType && typeof m.meta === 'number' && m.meta > 0 && m.meta <= 1.2) {
+          isFractional = true;
+          displayMeta = (m.meta * 100) + '%';
+      }
       
       const row = document.createElement('div');
       row.className = 'meta-row';
@@ -814,8 +820,8 @@ async function cargarMetas() {
       let partidaHtml = '';
       if (m.kpiId.trim().toUpperCase() === 'GESTION DE VALOR') {
           partidaHtml = `
-            <input class="meta-partida-input" type="number" step="any" value="${res.partidaGV || ''}" data-kpi="${m.kpiId}" placeholder="Partida" style="margin-left:8px;max-width:80px">
-            <span class="meta-tipo" style="margin-left:4px">Partida</span>
+            <input class="meta-input meta-partida-input" type="number" step="any" value="${res.partidaGV || ''}" data-kpi="${m.kpiId}" placeholder="Partida" style="margin-left:8px;width:80px">
+            <span class="meta-tipo" style="margin-left:4px;margin-right:4px">Partida</span>
           `;
       }
 
@@ -825,7 +831,7 @@ async function cargarMetas() {
           <span class="meta-desc">${m.descripcion || ''}</span>
         </div>
         <div class="meta-edit">
-          <input class="meta-input" type="number" step="any" value="${displayMeta}" data-kpi="${m.kpiId}" data-porc="${isPorcentaje}" placeholder="Meta">
+          <input class="meta-input" type="text" value="${displayMeta}" data-kpi="${m.kpiId}" placeholder="Meta">
           <span class="meta-tipo">${m.tipoMeta || ''}</span>
           ${partidaHtml}
           <span class="meta-peso" style="margin-left:8px">${typeof m.pesoPPM === 'number' ? (m.pesoPPM * 100).toFixed(0) + '%' : (m.pesoPPM || '')}</span>
@@ -860,16 +866,14 @@ async function cargarMetas() {
       let errores = 0;
       for (const inp of inputs) {
         const kpiId = inp.dataset.kpi;
-        const isPorc = inp.dataset.porc === 'true';
-        let nuevaMetaStr = inp.value.trim();
-        if (!nuevaMetaStr) continue;
+        let valStr = inp.value.trim();
+        if (!valStr) continue;
         
-        // Si originalmente era porcentaje, dividimos entre 100 para Sheets
-        let nuevaMeta = parseFloat(nuevaMetaStr);
-        if (isPorc && !isNaN(nuevaMeta)) {
+        let nuevaMeta = parseFloat(valStr.replace('%', ''));
+        if (isNaN(nuevaMeta)) continue;
+
+        if (valStr.endsWith('%')) {
             nuevaMeta = nuevaMeta / 100;
-        } else {
-            nuevaMeta = nuevaMetaStr;
         }
 
         let partida = undefined;
