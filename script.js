@@ -1,5 +1,5 @@
 // ── CONFIG ──────────────────────────────────────────────
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxjF6mN8aD_m4T14LsSWptTBOyZ-pF052NvPaIuN6VbgionvaZGuS3xHSesSRBImOIV/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwiJPCt4CJgUKZ5NPzl137qDT5R2uBePNlhKo7VMohWJxYpVKxaYMLTRHJIlI18nVs/exec';
 const FIREBASE_BUCKET = 'seguimiento-ventas-manuel.firebasestorage.app'; // ← o el del cliente
 const GALERIA_FOLDER = 'galeria_v2/';
 const PASS_KEY = btoa('Ventas2025'); // contraseña de ventas (sync con Config.gs)
@@ -42,6 +42,7 @@ async function initApp() {
   initCodigos();
   initPersonalizacion();
   initAceleradoresControls();
+  initCerrarMes();
   updateTime();
   setInterval(updateTime, 30000);
   navigateTo('inicio');
@@ -76,10 +77,13 @@ function aplicarConfig(config) {
 function initNav() {
   document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', e => {
+      if (item.id === 'nav-cerrar-mes') return; // Handled separately
       e.preventDefault();
       const sec = item.dataset.section;
-      navigateTo(sec);
-      closeSidebar();
+      if (sec) {
+          navigateTo(sec);
+          closeSidebar();
+      }
     });
   });
   document.getElementById('hamburger').addEventListener('click', openSidebar);
@@ -1146,6 +1150,46 @@ async function abrirPopupEditarAceleradores() {
   } catch (e) {
     popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2);padding:20px">Error: ' + e.message + '</p>';
   }
+}
+
+// ── CERRAR MES ────────────────────────────────────────────
+function initCerrarMes() {
+  const btn = document.getElementById('nav-cerrar-mes');
+  if (!btn) return;
+  
+  btn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    closeSidebar();
+    
+    const qty = document.querySelectorAll('#kpi-grid .kpi-card').length;
+    // Just a sanity check, no blocking
+    
+    const pwd = prompt('⚠️ CERRAR MES ⚠️\\n\\nEsta acción generará un PDF con el resumen completo y luego BORRARÁ TODAS LAS VENTAS DEL MES para empezar de cero.\\n\\nPara autorizar, ingresa tu CONTRASEÑA de Administrador:');
+    if (!pwd) return;
+    
+    const email = prompt('📩 ¿A qué correo electrónico deseas enviar el reporte en PDF del mes cerrado?');
+    if (!email || !email.includes('@')) {
+      toast('Correo inválido o cancelado.', 'err');
+      return;
+    }
+
+    const conf = confirm(`¿Estás 100% seguro de Cerrar el Mes?\\n\\n- El PDF con todas las hojas se enviará a: ${email}\\n- Se borrará definitivamente el historial de RegistroVentas.\\n\\nEsta acción no se puede deshacer.`);
+    if (!conf) return;
+
+    toast('Generando PDF y enviando correo, por favor no cierres la página...', 'ok');
+    
+    try {
+      const res = await post('cerrarmes', { password: pwd, email: email.trim() });
+      if (res.success) {
+        alert('✅ ÉXITO: ' + res.message);
+        window.location.reload();
+      } else {
+        alert('❌ ERROR: ' + (res.error || 'Desconocido'));
+      }
+    } catch (err) {
+      alert('❌ ERROR de conexión: ' + err.message);
+    }
+  });
 }
 
 // ── HELPER POPUP BASE ─────────────────────────────────────
