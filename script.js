@@ -326,6 +326,7 @@ async function initFormVenta() {
   const inpCantidad = document.getElementById('vf-cantidad');
   const inpEquivUnit = document.getElementById('vf-entradas-unit');
   const inpEquivTot = document.getElementById('vf-entradas-total');
+  const selTipoKPI = document.getElementById('vf-tipo-kpi');
 
   function poblarSelect(sel, opciones, placeholder) {
     sel.innerHTML = `<option value="">${placeholder}</option>`;
@@ -338,7 +339,17 @@ async function initFormVenta() {
 
   function filtrarPorCategoria() {
     const cat = selCategoria.value.trim().toLowerCase();
+    const kpi = selTipoKPI.value;
     inpEquivUnit.value = ''; inpEquivTot.value = '';
+    
+    if (kpi === 'VOZ_MOVIL') {
+        const codigosVoz = ['Cod_3NA', 'Cod_3LN', 'Cod_3LM', 'Cod_3JB', 'Cod_Migracion', 'Cod_PPT'];
+        const entradasVoz = ['Alta Normal', 'Portada Prepago', 'Portada Postpago', 'Alta Totalización', 'Porta Pre Totalizada', 'Porta Post Totalizada', 'Alta Completación', 'Porta Pre Completación', 'Porta Post Completación', 'Alta Migrada', 'Alta Ppt'];
+        poblarSelect(selCod, codigosVoz, '— Selecciona código —');
+        poblarSelect(selEntrada, entradasVoz, '— Selecciona tipo entrada —');
+        return;
+    }
+
     if (!cat) {
       poblarSelect(selCod, [], '— Selecciona categoría primero —');
       poblarSelect(selEntrada, [], '— Selecciona categoría primero —');
@@ -357,7 +368,15 @@ async function initFormVenta() {
   function filtrarEntradasPorCodigo() {
     const cat = selCategoria.value.trim().toLowerCase();
     const codigo = selCod.value;
+    const kpi = selTipoKPI.value;
     inpEquivUnit.value = ''; inpEquivTot.value = '';
+    
+    if (kpi === 'VOZ_MOVIL') {
+        const entradasVoz = ['Alta Normal', 'Portada Prepago', 'Portada Postpago', 'Alta Totalización', 'Porta Pre Totalizada', 'Porta Post Totalizada', 'Alta Completación', 'Porta Pre Completación', 'Porta Post Completación', 'Alta Migrada', 'Alta Ppt'];
+        poblarSelect(selEntrada, entradasVoz, '— Selecciona tipo entrada —');
+        return;
+    }
+
     if (!cat || !codigo) return;
     const entradas = [...new Set(
       reglasCache
@@ -382,6 +401,7 @@ async function initFormVenta() {
     }
   }
 
+  selTipoKPI.addEventListener('change', filtrarPorCategoria);
   selCategoria.addEventListener('change', filtrarPorCategoria);
   selCod.addEventListener('change', () => { filtrarEntradasPorCodigo(); buscarEntradasEquiv(); });
   selEntrada.addEventListener('change', buscarEntradasEquiv);
