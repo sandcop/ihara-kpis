@@ -464,7 +464,7 @@ async function initFormVenta() {
       const valUnit = parseFloat(regla.valorEntradaEquiv) || 0;
       const cant = parseFloat(inpCantidad.value) || 1;
       inpEquivUnit.value = valUnit;
-      inpEquivTot.value = (valUnit * cant).toFixed(2);
+      inpEquivTot.value = parseFloat((valUnit * cant).toFixed(10));
     } else {
       inpEquivUnit.value = ''; inpEquivTot.value = '';
     }
@@ -506,8 +506,8 @@ async function initFormVenta() {
       categoriaRegla: document.getElementById('vf-categoria').value,
       tipoEntradaRegla: document.getElementById('vf-tipo-entrada').value,
       cantidadVendida: form.cantidadVendida.value,
-      entradasEquivUnit: document.getElementById('vf-entradas-unit').value,
-      totalEntradas: document.getElementById('vf-entradas-total').value,
+      entradasEquivUnit: parseFloat(document.getElementById('vf-entradas-unit').value) || '',
+      totalEntradas: parseFloat(document.getElementById('vf-entradas-total').value) || '',
       orden: form.orden.value,
       modeloEquipo: form.modeloEquipo.value,
       valorEquipo: form.valorEquipo.value,
@@ -739,10 +739,10 @@ function formatVal(v, esPorc = false, forzarNumero = false) {
   if (v === null || v === undefined || v === '') return '—';
   if (typeof v === 'number') {
     if (v === 0) return '0';
-    if (Math.abs(v) >= 1000) return '$' + v.toLocaleString('es-CL');
-    // Si es porcentaje (entre 0 y 2, con decimales) mostrar como %
-    if (esPorc || (!forzarNumero && v > 0 && v <= 2 && v % 1 !== 0)) return (v * 100).toFixed(0) + '%';
-    return v % 1 === 0 ? v.toString() : v.toFixed(1);
+    if (Math.abs(v) >= 1000) return v.toLocaleString('es-CL');
+    // Solo convertir a % si se indica explícitamente
+    if (esPorc) return (v * 100).toFixed(0) + '%';
+    return v % 1 === 0 ? v.toLocaleString('es-CL') : v.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   }
   if (typeof v === 'string' && v.includes('%')) return v;
   return v.toString();
