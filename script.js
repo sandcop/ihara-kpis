@@ -36,7 +36,6 @@ async function initApp() {
   await cargarConfig();
   initNav();
   initTheme();
-  initGaleria();
   cargarUltimaVenta();
   initFormVenta();
   initCodigos();
@@ -175,6 +174,17 @@ async function cargarKPIs() {
       card.style.setProperty('--kpi-color', color);
       // ISN y NBA tienen valores porcentuales (0.9 = 90%, 0.85 = 85%)
       const esPorc = ['ISN', 'ADHESION_NBA'].includes(kpi.id);
+      
+      // Proyección Fin de Mes
+      let proyeccionHtml = '';
+      if (typeof kpi.real === 'number' && typeof kpi.meta === 'number' && kpi.meta > 0 && !esPorc) {
+          const hoy = new Date();
+          const diaActual = Math.max(1, hoy.getDate());
+          const totalDias = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
+          const proyNum = (kpi.real / diaActual) * totalDias;
+          proyeccionHtml = `<div style="font-size:0.75rem; color:var(--text-2); margin-top:8px; border-top:1px solid var(--border); padding-top:6px;">Proy. Fin de Mes: <strong style="color:var(--text-1)">${formatVal(proyNum)}</strong></div>`;
+      }
+
       // Botón + para TERMINALES
       const btnTerminales = kpi.id === 'TERMINALES' ? `<button class="btn-sm btn-ghost kpi-detail-btn" data-kpi="${kpi.id}" style="margin-top:8px;font-size:0.72rem">+ Ver modelos</button>` : '';
       // Botón + para FO_TERMINADA
@@ -191,6 +201,7 @@ async function cargarKPIs() {
           <div class="kpi-progress-track"><div class="kpi-progress-fill" style="width:${porcPct}%"></div></div>
           <div class="kpi-progress-label">${formatPorc(porcVal)}</div>
         </div>`}
+        ${proyeccionHtml}
         ${btnTerminales}${btnFO}
       `;
       grid.appendChild(card);
@@ -693,122 +704,7 @@ function previewColors() {
   document.getElementById('preview-avatar').style.background = acento;
 }
 
-// ── GALERÍA ──────────────────────────────────────────────
-function initGaleria() {
-  const input = document.getElementById('galeria-input');
-  const btnUp = document.getElementById('btn-subir-foto');
-  const btnDel = document.getElementById('galeria-del-btn');
 
-  btnUp.addEventListener('click', () => input.click());
-  input.addEventListener('change', async () => {
-    const file = input.files[0];
-    if (!file) return;
-    const pwd = prompt('Contraseña admin:');
-    if (!pwd) return;
-    if (btoa(pwd) !== btoa('Admin2025')) { toast('Contraseña incorrecta', 'err'); return; }
-    await subirFoto(file);
-    input.value = '';
-  });
-
-  btnDel.addEventListener('click', async () => {
-    if (!galeriaFotos[galeriaIdx]) return;
-    const pwd = prompt('Contraseña admin:');
-    if (!pwd || btoa(pwd) !== btoa('Admin2025')) { toast('Contraseña incorrecta', 'err'); return; }
-    await eliminarFoto(galeriaFotos[galeriaIdx].fileName);
-  });
-
-  document.getElementById('galeria-main').addEventListener('click', () => {
-    if (galeriaFotos[galeriaIdx]) openFullscreen(galeriaFotos[galeriaIdx].url);
-  });
-
-  cargarGaleria();
-}
-
-async function cargarGaleria() {
-  const thumbs = document.getElementById('galeria-thumbs');
-  const empty = document.getElementById('galeria-empty');
-  const main = document.getElementById('galeria-main');
-  const btnDel = document.getElementById('galeria-del-btn');
-  thumbs.innerHTML = Array(4).fill('<div class="galeria-thumb-skel"></div>').join('');
-
-  try {
-    const url = `https://firebasestorage.googleapis.com/v0/b/${FIREBASE_BUCKET}/o?prefix=${encodeURIComponent(GALERIA_FOLDER)}&delimiter=/`;
-    const res = await fetch(url);
-    const data = await res.json();
-    const items = (data.items || []).filter(i => !i.name.endsWith('/'));
-
-    galeriaFotos = items.map(i => ({
-      fileName: i.name,
-      url: `https://firebasestorage.googleapis.com/v0/b/${FIREBASE_BUCKET}/o/${encodeURIComponent(i.name)}?alt=media`
-    }));
-
-    thumbs.innerHTML = '';
-    if (galeriaFotos.length === 0) {
-      empty.style.display = 'flex';
-      main.style.display = 'none';
-      btnDel.style.display = 'none';
-      return;
-    }
-    empty.style.display = 'none';
-    galeriaFotos.forEach((f, i) => {
-      const img = document.createElement('img');
-      img.src = f.url; img.className = 'galeria-thumb'; img.alt = 'Foto ' + (i + 1);
-      img.addEventListener('click', () => setFotoActiva(i));
-      thumbs.appendChild(img);
-    });
-    setFotoActiva(0);
-  } catch (_) { thumbs.innerHTML = ''; }
-}
-
-function setFotoActiva(idx) {
-  galeriaIdx = idx;
-  const main = document.getElementById('galeria-main');
-  const btnDel = document.getElementById('galeria-del-btn');
-  main.src = galeriaFotos[idx].url;
-  main.style.display = 'block';
-  document.getElementById('galeria-empty').style.display = 'none';
-  btnDel.style.display = 'flex';
-  document.querySelectorAll('.galeria-thumb').forEach((t, i) => t.classList.toggle('active', i === idx));
-}
-
-async function subirFoto(file) {
-  const btn = document.getElementById('btn-subir-foto');
-  btn.textContent = 'Subiendo...';
-  btn.disabled = true;
-  try {
-    const ext = file.name.split('.').pop();
-    const fn = GALERIA_FOLDER + 'foto_' + Date.now() + '.' + ext;
-    const upUrl = `https://firebasestorage.googleapis.com/v0/b/${FIREBASE_BUCKET}/o/${encodeURIComponent(fn)}?uploadType=media`;
-    const res = await fetch(upUrl, { method: 'POST', headers: { 'Content-Type': file.type }, body: file });
-    if (!res.ok) throw new Error('Error al subir');
-    toast('Foto subida', 'ok');
-    await cargarGaleria();
-  } catch (e) { toast('Error: ' + e.message, 'err'); }
-  finally { btn.textContent = 'Subir foto'; btn.disabled = false; }
-}
-
-async function eliminarFoto(fileName) {
-  try {
-    const url = `https://firebasestorage.googleapis.com/v0/b/${FIREBASE_BUCKET}/o/${encodeURIComponent(fileName)}`;
-    await fetch(url, { method: 'DELETE' });
-    toast('Foto eliminada', 'ok');
-    await cargarGaleria();
-  } catch (e) { toast('Error: ' + e.message, 'err'); }
-}
-
-// ── FULLSCREEN ───────────────────────────────────────────
-function openFullscreen(src) {
-  document.getElementById('fullscreen-img').src = src;
-  document.getElementById('fullscreen-overlay').classList.add('open');
-}
-document.getElementById('fullscreen-close').addEventListener('click', () => {
-  document.getElementById('fullscreen-overlay').classList.remove('open');
-});
-document.getElementById('fullscreen-overlay').addEventListener('click', e => {
-  if (e.target === e.currentTarget) document.getElementById('fullscreen-overlay').classList.remove('open');
-});
-
-// ── HELPERS ──────────────────────────────────────────────
 async function get(action) {
   const res = await fetch(APPS_SCRIPT_URL + '?action=' + action, { cache: 'no-cache' });
   return res.json();
