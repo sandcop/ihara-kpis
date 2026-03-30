@@ -1,5 +1,5 @@
 // ── CONFIG ──────────────────────────────────────────────
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwiJPCt4CJgUKZ5NPzl137qDT5R2uBePNlhKo7VMohWJxYpVKxaYMLTRHJIlI18nVs/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbylXxEk_2ydD4gdeOKwYnQOdpGyvbxcYO_cpFdEGUmpGd3qfm_gUkMrzUA_5w32XLF0/exec';
 const FIREBASE_BUCKET = 'seguimiento-ventas-manuel.firebasestorage.app'; // ← o el del cliente
 const GALERIA_FOLDER = 'galeria_v2/';
 const PASS_KEY = btoa('Ventas2025'); // contraseña de ventas (sync con Config.gs)
@@ -302,12 +302,44 @@ async function cargarFaltantes() {
         <tbody>${gestion.map(i => `<tr>
           <td>${i.gestion}</td>
           <td>${formatVal(i.entrada)}</td>
-          <td>${formatVal(i.unidad)}</td>
+          <td>
+             <input type="number" step="any" class="input-unidad-gestion" data-fila="${i.filaEnSheet}" value="${i.unidad !== '' && i.unidad !== undefined ? i.unidad : ''}" style="width:60px; padding:4px; text-align:center; background:var(--bg-alt); border:1px solid var(--border); color:inherit; border-radius:4px;">
+          </td>
           <td>${formatVal(i.subtotal)}</td>
           <td>${i.resultado !== '' && i.resultado !== undefined ? formatVal(i.resultado) : ''}</td>
           <td>${i.partida !== '' && i.partida !== undefined ? formatVal(i.partida) : ''}</td>
         </tr>`).join('')}</tbody>
       </table>`;
+
+      gwrap.querySelectorAll('.input-unidad-gestion').forEach(inp => {
+        inp.addEventListener('change', async (e) => {
+           const fila = e.target.dataset.fila;
+           const val = e.target.value;
+           
+           const pwd = prompt('Ingresa la contraseña admin para confirmar modificación:');
+           if (!pwd) {
+               cargarFaltantes(); // revert
+               return; 
+           }
+           
+           try {
+               toast('Guardando unidad...', 'ok');
+               e.target.disabled = true;
+               const resPost = await post('actualizarunidadgestion', { fila: parseInt(fila), valor: val, password: pwd });
+               if (resPost.success) {
+                   toast('Unidad actualizada en Sheets', 'ok');
+                   cargarFaltantes();
+               } else {
+                   alert('Error al guardar: ' + resPost.error);
+                   cargarFaltantes();
+               }
+           } catch (err) {
+               alert('Error de conexión');
+               cargarFaltantes();
+           }
+        });
+      });
+
     } else {
       gwrap.innerHTML = '<p style="color:var(--text-2);padding:20px">Sin datos de gestión.</p>';
     }
