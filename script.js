@@ -1,14 +1,14 @@
 // ── CONFIG ──────────────────────────────────────────────
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQX98n9NO5DaM7TjEqaCDUsW7JKDe3cFVlBxrL1uQpjCqUvXarf87wfvOXu5v0Z9Mi/exec'; 
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwuZlF3hxy2DtPY6TxcGsq5rSRA2XUWaBhkjS5e0asMWphFZ_Y0iRRXKznFzF_SZuEH/exec';
 const FIREBASE_BUCKET = 'seguimiento-ventas-manuel.firebasestorage.app'; // ← o el del cliente
-const GALERIA_FOLDER  = 'galeria_v2/';
-const PASS_KEY        = btoa('Ventas2025'); // contraseña de ventas (sync con Config.gs)
+const GALERIA_FOLDER = 'galeria_v2/';
+const PASS_KEY = btoa('Ventas2025'); // contraseña de ventas (sync con Config.gs)
 
 // ── STATE ────────────────────────────────────────────────
-let galeriaFotos    = [];
-let galeriaIdx      = 0;
-let reglasCache     = [];
-let configActual    = {};
+let galeriaFotos = [];
+let galeriaIdx = 0;
+let reglasCache = [];
+let configActual = {};
 
 // ── AUTH ─────────────────────────────────────────────────
 function isAuth() { return sessionStorage.getItem('auth') === '1'; }
@@ -23,7 +23,7 @@ function doLogin() {
   if (btoa(pwd) === PASS_KEY || pwd === 'Admin2025') {
     setAuth();
     document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display          = 'flex';
+    document.getElementById('app').style.display = 'flex';
     initApp();
   } else {
     err.textContent = 'Contraseña incorrecta.';
@@ -50,26 +50,26 @@ async function initApp() {
 // ── CONFIG / PERSONALIZACIÓN ─────────────────────────────
 async function cargarConfig() {
   try {
-    const res  = await get('getconfig');
+    const res = await get('getconfig');
     if (res.success) aplicarConfig(res.config);
-  } catch(_) {}
+  } catch (_) { }
 }
 
 function aplicarConfig(config) {
   configActual = config;
   const root = document.documentElement;
-  if (config.colorPrimario)   { root.style.setProperty('--accent', config.colorPrimario); root.style.setProperty('--accent-dark', darken(config.colorPrimario, 15)); }
+  if (config.colorPrimario) { root.style.setProperty('--accent', config.colorPrimario); root.style.setProperty('--accent-dark', darken(config.colorPrimario, 15)); }
   if (config.colorSecundario) { root.style.setProperty('--sidebar-bg', config.colorSecundario); }
   if (config.nombreEjecutivo) {
-    document.getElementById('user-name').textContent     = config.nombreEjecutivo;
-    document.getElementById('user-avatar').textContent   = config.nombreEjecutivo[0].toUpperCase();
+    document.getElementById('user-name').textContent = config.nombreEjecutivo;
+    document.getElementById('user-avatar').textContent = config.nombreEjecutivo[0].toUpperCase();
     document.getElementById('sidebar-brand-name').textContent = config.nombreEmpresa || 'Dashboard';
   }
   // Greeting
   const hora = new Date().getHours();
   const saludo = hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches';
   document.getElementById('greeting-text').textContent = saludo + (config.nombreEjecutivo ? ', ' + config.nombreEjecutivo : '') + ' 👋';
-  document.getElementById('mobile-title').textContent  = config.nombreEmpresa || 'Dashboard';
+  document.getElementById('mobile-title').textContent = config.nombreEmpresa || 'Dashboard';
 }
 
 // ── NAVEGACIÓN ───────────────────────────────────────────
@@ -103,13 +103,13 @@ function navigateTo(sec) {
   const ni = document.querySelector('.nav-item[data-section="' + sec + '"]');
   if (ni) ni.classList.add('active');
   // Carga lazy
-  if (sec === 'kpis')      { cargarKPIs(); cargarAceleradores(); }
-  if (sec === 'metas')     cargarMetas();
+  if (sec === 'kpis') { cargarKPIs(); cargarAceleradores(); }
+  if (sec === 'metas') cargarMetas();
   if (sec === 'faltantes') cargarFaltantes();
-  if (sec === 'codigos')   cargarTablacodigos();
+  if (sec === 'codigos') cargarTablacodigos();
 }
 
-function openSidebar()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebar-overlay').classList.add('visible'); }
+function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebar-overlay').classList.add('visible'); }
 function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('visible'); }
 
 // ── TEMA ─────────────────────────────────────────────────
@@ -127,8 +127,8 @@ function initTheme() {
 // ── TIEMPO ───────────────────────────────────────────────
 function updateTime() {
   const now = new Date();
-  const h   = String(now.getHours()).padStart(2, '0');
-  const m   = String(now.getMinutes()).padStart(2, '0');
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
   document.getElementById('user-time').textContent = h + ':' + m;
 }
 
@@ -138,10 +138,10 @@ async function cargarUltimaVenta() {
     const res = await get('getultimaventa');
     if (res.success && res.data) {
       document.getElementById('ultima-venta-nombre').textContent = res.data.nombre || '—';
-      document.getElementById('ultima-venta-meta').textContent   =
+      document.getElementById('ultima-venta-meta').textContent =
         (res.data.producto || '—') + ' · Orden: ' + (res.data.orden || '—') + ' · ' + (res.data.fecha || '—');
     }
-  } catch(_) {}
+  } catch (_) { }
 }
 
 // ── KPIs ─────────────────────────────────────────────────
@@ -155,14 +155,14 @@ async function cargarKPIs() {
     // Resumen
     const porc = res.resumen.cumplimiento;
     const comp = res.resumen.comision;
-    document.getElementById('cumpl-porc').textContent     = formatPorc(porc);
+    document.getElementById('cumpl-porc').textContent = formatPorc(porc);
     document.getElementById('cumpl-comision').textContent = formatMoney(res.resumen.factorPPM || comp);
 
     // Cards
     grid.innerHTML = '';
     res.kpis.forEach(kpi => {
-      const porcVal = typeof kpi.porcCumpl === 'number' ? kpi.porcCumpl : parseFloat(String(kpi.porcCumpl).replace('%',''))/100 || 0;
-      const color   = porcVal >= 1.5 ? '#6c5ce7' : porcVal >= 1 ? '#00b894' : porcVal >= 0.7 ? '#fdcb6e' : '#e17055';
+      const porcVal = typeof kpi.porcCumpl === 'number' ? kpi.porcCumpl : parseFloat(String(kpi.porcCumpl).replace('%', '')) / 100 || 0;
+      const color = porcVal >= 1.5 ? '#6c5ce7' : porcVal >= 1 ? '#00b894' : porcVal >= 0.7 ? '#fdcb6e' : '#e17055';
       const porcPct = Math.min(porcVal * 100, 100);
       const tieneAporte = kpi.peso && kpi.peso !== '';
 
@@ -170,7 +170,7 @@ async function cargarKPIs() {
       card.className = 'kpi-card';
       card.style.setProperty('--kpi-color', color);
       // ISN y NBA tienen valores porcentuales (0.9 = 90%, 0.85 = 85%)
-      const esPorc = ['ISN','ADHESION_NBA'].includes(kpi.id);
+      const esPorc = ['ISN', 'ADHESION_NBA'].includes(kpi.id);
       // Botón + para TERMINALES
       const btnTerminales = kpi.id === 'TERMINALES' ? `<button class="btn-sm btn-ghost kpi-detail-btn" data-kpi="${kpi.id}" style="margin-top:8px;font-size:0.72rem">+ Ver modelos</button>` : '';
       // Botón + para FO_TERMINADA
@@ -191,7 +191,7 @@ async function cargarKPIs() {
       `;
       grid.appendChild(card);
     });
-  } catch(e) {
+  } catch (e) {
     grid.innerHTML = '<p style="color:var(--text-2);padding:20px">Error: ' + e.message + '</p>';
   }
 }
@@ -201,8 +201,8 @@ document.getElementById('btn-refresh-kpis').addEventListener('click', () => { ca
 
 // ── ACELERADORES ─────────────────────────────────────────
 async function cargarAceleradores() {
-  const grid     = document.getElementById('acel-grid');
-  const totalWrap= document.getElementById('acel-total-wrap');
+  const grid = document.getElementById('acel-grid');
+  const totalWrap = document.getElementById('acel-total-wrap');
   if (!grid) return;
   grid.innerHTML = '<div class="loader-wrap"><div class="spinner"></div></div>';
 
@@ -210,29 +210,27 @@ async function cargarAceleradores() {
     const res = await get('getaceleradores');
     if (!res.success) throw new Error(res.error);
 
-    const a = res.aceleradores;
-    const items = [
-      { title: 'Voz Móvil',            msg: a.voz,            color: '#6c5ce7' },
-      { title: 'Fibra Óptica',         msg: a.fo,             color: '#0984e3' },
-      { title: 'Terminales',           msg: a.terminales,     color: '#e17055' },
-      { title: 'Incentivo Terminales', msg: a.ofertaEspecial, color: '#00b894' },
-    ];
+    const aList = res.aceleradores || [];
+    const colores = ['#6c5ce7', '#0984e3', '#e17055', '#00b894', '#fdcb6e', '#e84393'];
 
     grid.innerHTML = '';
-    items.forEach(item => {
-      if (!item.msg) return;
+    aList.forEach((item, idx) => {
+      // Si el evaluado está vacío, mejor no mostrar la tarjeta
+      if (!item.valorEvaluado && !item.formulaOTexto) return;
+      
+      const color = colores[idx % colores.length];
       const card = document.createElement('div');
       card.className = 'acel-card';
-      card.style.setProperty('--acel-color', item.color);
+      card.style.setProperty('--acel-color', color);
 
-      // Header con título + botón ocultar individual
+      // Header con título + botón ocultar
       const header = document.createElement('div');
       header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;';
 
       const titulo = document.createElement('div');
       titulo.className = 'acel-card-title';
       titulo.style.marginBottom = '0';
-      titulo.textContent = item.title;
+      titulo.textContent = item.titulo || 'Acelerador';
 
       const btnOc = document.createElement('button');
       btnOc.textContent = '🙈';
@@ -241,13 +239,13 @@ async function cargarAceleradores() {
 
       const body = document.createElement('div');
       body.className = 'acel-card-msg';
-      body.textContent = item.msg;
+      body.textContent = item.valorEvaluado || '';
 
       btnOc.addEventListener('click', () => {
         const oculto = body.style.display === 'none';
         body.style.display = oculto ? '' : 'none';
-        btnOc.textContent  = oculto ? '🙈' : '👁';
-        btnOc.title        = oculto ? 'Ocultar' : 'Mostrar';
+        btnOc.textContent = oculto ? '🙈' : '👁';
+        btnOc.title = oculto ? 'Ocultar' : 'Mostrar';
       });
 
       header.appendChild(titulo);
@@ -259,16 +257,16 @@ async function cargarAceleradores() {
 
     if (totalWrap) totalWrap.style.display = 'none';
 
-  } catch(e) {
+  } catch (e) {
     grid.innerHTML = '<p style="color:var(--text-2);padding:20px">Error cargando aceleradores: ' + e.message + '</p>';
   }
 }
 
 // ── FALTANTES ────────────────────────────────────────────
 async function cargarFaltantes() {
-  const wrap  = document.getElementById('faltantes-wrap');
+  const wrap = document.getElementById('faltantes-wrap');
   const gwrap = document.getElementById('gestion-wrap');
-  wrap.innerHTML  = '<div class="loader-wrap"><div class="spinner"></div></div>';
+  wrap.innerHTML = '<div class="loader-wrap"><div class="spinner"></div></div>';
   gwrap.innerHTML = '<div class="loader-wrap"><div class="spinner"></div></div>';
   try {
     // Todo viene en un solo endpoint: faltantes + gestion
@@ -300,14 +298,14 @@ async function cargarFaltantes() {
           <td>${formatVal(i.unidad)}</td>
           <td>${formatVal(i.subtotal)}</td>
           <td>${i.resultado !== '' && i.resultado !== undefined ? formatVal(i.resultado) : ''}</td>
-          <td>${i.partida   !== '' && i.partida   !== undefined ? formatVal(i.partida)   : ''}</td>
+          <td>${i.partida !== '' && i.partida !== undefined ? formatVal(i.partida) : ''}</td>
         </tr>`).join('')}</tbody>
       </table>`;
     } else {
       gwrap.innerHTML = '<p style="color:var(--text-2);padding:20px">Sin datos de gestión.</p>';
     }
-  } catch(e) {
-    wrap.innerHTML  = '<p style="color:var(--text-2);padding:20px">Error: ' + e.message + '</p>';
+  } catch (e) {
+    wrap.innerHTML = '<p style="color:var(--text-2);padding:20px">Error: ' + e.message + '</p>';
     gwrap.innerHTML = '';
   }
 }
@@ -317,14 +315,14 @@ async function initFormVenta() {
   try {
     const res = await get('getreglasentradas');
     if (res.success) reglasCache = res.reglas;
-  } catch(_) {}
+  } catch (_) { }
 
   const selCategoria = document.getElementById('vf-categoria');
-  const selCod       = document.getElementById('vf-codigo');
-  const selEntrada   = document.getElementById('vf-tipo-entrada');
-  const inpCantidad  = document.getElementById('vf-cantidad');
+  const selCod = document.getElementById('vf-codigo');
+  const selEntrada = document.getElementById('vf-tipo-entrada');
+  const inpCantidad = document.getElementById('vf-cantidad');
   const inpEquivUnit = document.getElementById('vf-entradas-unit');
-  const inpEquivTot  = document.getElementById('vf-entradas-total');
+  const inpEquivTot = document.getElementById('vf-entradas-total');
 
   function poblarSelect(sel, opciones, placeholder) {
     sel.innerHTML = `<option value="">${placeholder}</option>`;
@@ -339,7 +337,7 @@ async function initFormVenta() {
     const cat = selCategoria.value.trim().toLowerCase();
     inpEquivUnit.value = ''; inpEquivTot.value = '';
     if (!cat) {
-      poblarSelect(selCod,     [], '— Selecciona categoría primero —');
+      poblarSelect(selCod, [], '— Selecciona categoría primero —');
       poblarSelect(selEntrada, [], '— Selecciona categoría primero —');
       return;
     }
@@ -347,14 +345,14 @@ async function initFormVenta() {
     const reglasCategoria = reglasCache.filter(r =>
       (r.categoria || '').toString().trim().toLowerCase() === cat
     );
-    const codigos  = [...new Set(reglasCategoria.map(r => r.codigoProducto).filter(Boolean))];
+    const codigos = [...new Set(reglasCategoria.map(r => r.codigoProducto).filter(Boolean))];
     const entradas = [...new Set(reglasCategoria.map(r => r.tipoEntrada).filter(Boolean))];
-    poblarSelect(selCod,     codigos,  codigos.length  ? '— Selecciona código —'      : '— Sin opciones —');
+    poblarSelect(selCod, codigos, codigos.length ? '— Selecciona código —' : '— Sin opciones —');
     poblarSelect(selEntrada, entradas, entradas.length ? '— Selecciona tipo entrada —' : '— Sin opciones —');
   }
 
   function filtrarEntradasPorCodigo() {
-    const cat    = selCategoria.value.trim().toLowerCase();
+    const cat = selCategoria.value.trim().toLowerCase();
     const codigo = selCod.value;
     inpEquivUnit.value = ''; inpEquivTot.value = '';
     if (!cat || !codigo) return;
@@ -367,15 +365,15 @@ async function initFormVenta() {
   }
 
   function buscarEntradasEquiv() {
-    const codigo  = selCod.value.trim();
+    const codigo = selCod.value.trim();
     const entrada = selEntrada.value.trim();
     if (!codigo || !entrada) { inpEquivUnit.value = ''; inpEquivTot.value = ''; return; }
     const regla = reglasCache.find(r => r.codigoProducto === codigo && r.tipoEntrada === entrada);
     if (regla && regla.valorEntradaEquiv !== '' && regla.valorEntradaEquiv !== null) {
       const valUnit = parseFloat(regla.valorEntradaEquiv) || 0;
-      const cant    = parseFloat(inpCantidad.value) || 1;
+      const cant = parseFloat(inpCantidad.value) || 1;
       inpEquivUnit.value = valUnit;
-      inpEquivTot.value  = (valUnit * cant).toFixed(2);
+      inpEquivTot.value = (valUnit * cant).toFixed(2);
     } else {
       inpEquivUnit.value = ''; inpEquivTot.value = '';
     }
@@ -387,7 +385,7 @@ async function initFormVenta() {
   inpCantidad.addEventListener('input', buscarEntradasEquiv);
 
   // Inicializar selects vacíos
-  poblarSelect(selCod,     [], '— Selecciona categoría primero —');
+  poblarSelect(selCod, [], '— Selecciona categoría primero —');
   poblarSelect(selEntrada, [], '— Selecciona categoría primero —');
 
   document.getElementById('vf-fecha').valueAsDate = new Date();
@@ -399,33 +397,33 @@ async function initFormVenta() {
     const btn = document.getElementById('vf-submit');
     if (!pwd) { showMsg(msg, 'Ingresa la contraseña.', false); return; }
 
-    btn.disabled    = true;
+    btn.disabled = true;
     btn.textContent = 'Guardando...';
     msg.textContent = '';
-    msg.className   = 'form-msg';
+    msg.className = 'form-msg';
 
     const form = e.target;
     const data = {
-      fecha:            form.fecha.value,
-      suscripcion:      form.suscripcion.value,
-      aloha:            form.aloha.value,
-      rut:              form.rut.value,
-      nombreCompleto:   form.nombreCompleto.value,
-      codigoProducto:   form.codigoProducto.value,
+      fecha: form.fecha.value,
+      suscripcion: form.suscripcion.value,
+      aloha: form.aloha.value,
+      rut: form.rut.value,
+      nombreCompleto: form.nombreCompleto.value,
+      codigoProducto: form.codigoProducto.value,
       tipoKPIPrincipal: document.getElementById('vf-tipo-kpi').value,
-      categoriaRegla:   document.getElementById('vf-categoria').value,
+      categoriaRegla: document.getElementById('vf-categoria').value,
       tipoEntradaRegla: document.getElementById('vf-tipo-entrada').value,
-      cantidadVendida:  form.cantidadVendida.value,
+      cantidadVendida: form.cantidadVendida.value,
       entradasEquivUnit: document.getElementById('vf-entradas-unit').value,
-      totalEntradas:    document.getElementById('vf-entradas-total').value,
-      orden:            form.orden.value,
-      modeloEquipo:     form.modeloEquipo.value,
-      valorEquipo:      form.valorEquipo.value,
-      montoAccesorio:   form.montoAccesorio.value,
-      nombreAccesorio:  form.nombreAccesorio.value,
-      rgu:              form.rgu.value,
-      seguro:           form.seguro.checked,
-      instalacionFO:    form.instalacionFO.checked
+      totalEntradas: document.getElementById('vf-entradas-total').value,
+      orden: form.orden.value,
+      modeloEquipo: form.modeloEquipo.value,
+      valorEquipo: form.valorEquipo.value,
+      montoAccesorio: form.montoAccesorio.value,
+      nombreAccesorio: form.nombreAccesorio.value,
+      rgu: form.rgu.value,
+      seguro: form.seguro.checked,
+      instalacionFO: form.instalacionFO.checked
     };
 
     try {
@@ -434,7 +432,7 @@ async function initFormVenta() {
         showMsg(msg, '✅ ' + res.message, true);
         form.reset();
         document.getElementById('vf-fecha').valueAsDate = new Date();
-        poblarSelect(selCod,     [], '— Selecciona categoría primero —');
+        poblarSelect(selCod, [], '— Selecciona categoría primero —');
         poblarSelect(selEntrada, [], '— Selecciona categoría primero —');
         inpEquivUnit.value = ''; inpEquivTot.value = '';
         cargarUltimaVenta();
@@ -442,10 +440,10 @@ async function initFormVenta() {
       } else {
         showMsg(msg, '❌ ' + (res.error || 'Error desconocido'), false);
       }
-    } catch(err) {
+    } catch (err) {
       showMsg(msg, '❌ ' + err.message, false);
     } finally {
-      btn.disabled    = false;
+      btn.disabled = false;
       btn.textContent = 'Registrar Venta';
     }
   });
@@ -471,7 +469,7 @@ async function cargarTablacodigos() {
         <td><span class="badge badge-green">${c.categoria || '—'}</span></td>
       </tr>`).join('')}</tbody>
     </table>`;
-  } catch(e) {
+  } catch (e) {
     wrap.innerHTML = '<p style="color:var(--text-2);padding:20px">Error: ' + e.message + '</p>';
   }
 }
@@ -482,23 +480,23 @@ function initCodigos() {
     const codNuevo = document.getElementById('cod-nuevo').value.trim();
     const valViejo = document.getElementById('val-viejo').value.trim();
     const valNuevo = document.getElementById('val-nuevo').value.trim();
-    const pwd      = document.getElementById('cod-password').value;
-    const msg      = document.getElementById('cod-msg');
+    const pwd = document.getElementById('cod-password').value;
+    const msg = document.getElementById('cod-msg');
 
     if (!codViejo || !codNuevo) { showMsg(msg, 'Ingresa el código viejo y el nuevo.', false); return; }
     if (!pwd) { showMsg(msg, 'Ingresa la contraseña.', false); return; }
 
     const btn = document.getElementById('cod-btn-actualizar');
-    btn.disabled    = true;
+    btn.disabled = true;
     btn.textContent = 'Actualizando...';
 
     try {
       const res = await post('actualizarCodigo', {
         codigoViejo: codViejo,
         codigoNuevo: codNuevo,
-        valorViejo:  valViejo || null,
-        valorNuevo:  valNuevo || null,
-        password:    pwd
+        valorViejo: valViejo || null,
+        valorNuevo: valNuevo || null,
+        password: pwd
       });
       if (res.success) {
         showMsg(msg, res.message, true);
@@ -507,10 +505,10 @@ function initCodigos() {
       } else {
         showMsg(msg, '❌ ' + (res.error || 'Error'), false);
       }
-    } catch(e) {
+    } catch (e) {
       showMsg(msg, '❌ ' + e.message, false);
     } finally {
-      btn.disabled    = false;
+      btn.disabled = false;
       btn.textContent = 'Actualizar →';
     }
   });
@@ -518,12 +516,12 @@ function initCodigos() {
 
 // ── PERSONALIZACIÓN ──────────────────────────────────────
 function initPersonalizacion() {
-  const inputAcento  = document.getElementById('pers-color-acento');
-  const hexAcento    = document.getElementById('pers-color-acento-hex');
+  const inputAcento = document.getElementById('pers-color-acento');
+  const hexAcento = document.getElementById('pers-color-acento-hex');
   const inputSidebar = document.getElementById('pers-color-sidebar');
-  const hexSidebar   = document.getElementById('pers-color-sidebar-hex');
-  const nombre       = document.getElementById('pers-nombre');
-  const empresa      = document.getElementById('pers-empresa');
+  const hexSidebar = document.getElementById('pers-color-sidebar-hex');
+  const nombre = document.getElementById('pers-nombre');
+  const empresa = document.getElementById('pers-empresa');
 
   // Sync color picker ↔ hex input
   inputAcento.addEventListener('input', () => { hexAcento.value = inputAcento.value; previewColors(); });
@@ -539,7 +537,7 @@ function initPersonalizacion() {
   document.querySelectorAll('#presets-acento .color-preset').forEach(btn => {
     btn.addEventListener('click', () => {
       inputAcento.value = btn.dataset.color;
-      hexAcento.value   = btn.dataset.color;
+      hexAcento.value = btn.dataset.color;
       document.querySelectorAll('#presets-acento .color-preset').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       previewColors();
@@ -548,7 +546,7 @@ function initPersonalizacion() {
   document.querySelectorAll('#presets-sidebar .color-preset').forEach(btn => {
     btn.addEventListener('click', () => {
       inputSidebar.value = btn.dataset.color;
-      hexSidebar.value   = btn.dataset.color;
+      hexSidebar.value = btn.dataset.color;
       document.querySelectorAll('#presets-sidebar .color-preset').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       previewColors();
@@ -565,10 +563,10 @@ function initPersonalizacion() {
   });
 
   // Llenar con config actual
-  if (configActual.colorPrimario)   { inputAcento.value  = configActual.colorPrimario;   hexAcento.value  = configActual.colorPrimario; }
+  if (configActual.colorPrimario) { inputAcento.value = configActual.colorPrimario; hexAcento.value = configActual.colorPrimario; }
   if (configActual.colorSecundario) { inputSidebar.value = configActual.colorSecundario; hexSidebar.value = configActual.colorSecundario; }
-  if (configActual.nombreEjecutivo) { nombre.value  = configActual.nombreEjecutivo; document.getElementById('preview-nombre').textContent  = configActual.nombreEjecutivo; document.getElementById('preview-avatar').textContent = configActual.nombreEjecutivo[0].toUpperCase(); }
-  if (configActual.nombreEmpresa)   { empresa.value = configActual.nombreEmpresa;   document.getElementById('preview-empresa').textContent = configActual.nombreEmpresa; }
+  if (configActual.nombreEjecutivo) { nombre.value = configActual.nombreEjecutivo; document.getElementById('preview-nombre').textContent = configActual.nombreEjecutivo; document.getElementById('preview-avatar').textContent = configActual.nombreEjecutivo[0].toUpperCase(); }
+  if (configActual.nombreEmpresa) { empresa.value = configActual.nombreEmpresa; document.getElementById('preview-empresa').textContent = configActual.nombreEmpresa; }
 
   // Guardar
   document.getElementById('pers-btn-guardar').addEventListener('click', async () => {
@@ -577,16 +575,16 @@ function initPersonalizacion() {
     const btn = document.getElementById('pers-btn-guardar');
     if (!pwd) { showMsg(msg, 'Ingresa la contraseña admin.', false); return; }
 
-    btn.disabled    = true;
+    btn.disabled = true;
     btn.textContent = 'Guardando...';
     try {
       const res = await post('guardarConfig', {
         password: pwd,
         config: {
-          colorPrimario:    inputAcento.value,
-          colorSecundario:  inputSidebar.value,
-          nombreEjecutivo:  nombre.value,
-          nombreEmpresa:    empresa.value
+          colorPrimario: inputAcento.value,
+          colorSecundario: inputSidebar.value,
+          nombreEjecutivo: nombre.value,
+          nombreEmpresa: empresa.value
         }
       });
       if (res.success) {
@@ -596,17 +594,17 @@ function initPersonalizacion() {
       } else {
         showMsg(msg, '❌ ' + (res.error || 'Error'), false);
       }
-    } catch(e) {
+    } catch (e) {
       showMsg(msg, '❌ ' + e.message, false);
     } finally {
-      btn.disabled    = false;
+      btn.disabled = false;
       btn.textContent = 'Guardar cambios →';
     }
   });
 }
 
 function previewColors() {
-  const acento  = document.getElementById('pers-color-acento').value;
+  const acento = document.getElementById('pers-color-acento').value;
   const sidebar = document.getElementById('pers-color-sidebar').value;
   document.documentElement.style.setProperty('--accent', acento);
   document.documentElement.style.setProperty('--accent-dark', darken(acento, 15));
@@ -616,8 +614,8 @@ function previewColors() {
 
 // ── GALERÍA ──────────────────────────────────────────────
 function initGaleria() {
-  const input  = document.getElementById('galeria-input');
-  const btnUp  = document.getElementById('btn-subir-foto');
+  const input = document.getElementById('galeria-input');
+  const btnUp = document.getElementById('btn-subir-foto');
   const btnDel = document.getElementById('galeria-del-btn');
 
   btnUp.addEventListener('click', () => input.click());
@@ -647,14 +645,14 @@ function initGaleria() {
 
 async function cargarGaleria() {
   const thumbs = document.getElementById('galeria-thumbs');
-  const empty  = document.getElementById('galeria-empty');
-  const main   = document.getElementById('galeria-main');
+  const empty = document.getElementById('galeria-empty');
+  const main = document.getElementById('galeria-main');
   const btnDel = document.getElementById('galeria-del-btn');
   thumbs.innerHTML = Array(4).fill('<div class="galeria-thumb-skel"></div>').join('');
 
   try {
-    const url  = `https://firebasestorage.googleapis.com/v0/b/${FIREBASE_BUCKET}/o?prefix=${encodeURIComponent(GALERIA_FOLDER)}&delimiter=/`;
-    const res  = await fetch(url);
+    const url = `https://firebasestorage.googleapis.com/v0/b/${FIREBASE_BUCKET}/o?prefix=${encodeURIComponent(GALERIA_FOLDER)}&delimiter=/`;
+    const res = await fetch(url);
     const data = await res.json();
     const items = (data.items || []).filter(i => !i.name.endsWith('/'));
 
@@ -666,45 +664,45 @@ async function cargarGaleria() {
     thumbs.innerHTML = '';
     if (galeriaFotos.length === 0) {
       empty.style.display = 'flex';
-      main.style.display  = 'none';
+      main.style.display = 'none';
       btnDel.style.display = 'none';
       return;
     }
     empty.style.display = 'none';
     galeriaFotos.forEach((f, i) => {
       const img = document.createElement('img');
-      img.src = f.url; img.className = 'galeria-thumb'; img.alt = 'Foto ' + (i+1);
+      img.src = f.url; img.className = 'galeria-thumb'; img.alt = 'Foto ' + (i + 1);
       img.addEventListener('click', () => setFotoActiva(i));
       thumbs.appendChild(img);
     });
     setFotoActiva(0);
-  } catch(_) { thumbs.innerHTML = ''; }
+  } catch (_) { thumbs.innerHTML = ''; }
 }
 
 function setFotoActiva(idx) {
   galeriaIdx = idx;
-  const main   = document.getElementById('galeria-main');
+  const main = document.getElementById('galeria-main');
   const btnDel = document.getElementById('galeria-del-btn');
   main.src = galeriaFotos[idx].url;
   main.style.display = 'block';
   document.getElementById('galeria-empty').style.display = 'none';
   btnDel.style.display = 'flex';
-  document.querySelectorAll('.galeria-thumb').forEach((t,i) => t.classList.toggle('active', i === idx));
+  document.querySelectorAll('.galeria-thumb').forEach((t, i) => t.classList.toggle('active', i === idx));
 }
 
 async function subirFoto(file) {
   const btn = document.getElementById('btn-subir-foto');
   btn.textContent = 'Subiendo...';
-  btn.disabled    = true;
+  btn.disabled = true;
   try {
     const ext = file.name.split('.').pop();
-    const fn  = GALERIA_FOLDER + 'foto_' + Date.now() + '.' + ext;
+    const fn = GALERIA_FOLDER + 'foto_' + Date.now() + '.' + ext;
     const upUrl = `https://firebasestorage.googleapis.com/v0/b/${FIREBASE_BUCKET}/o/${encodeURIComponent(fn)}?uploadType=media`;
     const res = await fetch(upUrl, { method: 'POST', headers: { 'Content-Type': file.type }, body: file });
     if (!res.ok) throw new Error('Error al subir');
     toast('Foto subida', 'ok');
     await cargarGaleria();
-  } catch(e) { toast('Error: ' + e.message, 'err'); }
+  } catch (e) { toast('Error: ' + e.message, 'err'); }
   finally { btn.textContent = 'Subir foto'; btn.disabled = false; }
 }
 
@@ -714,7 +712,7 @@ async function eliminarFoto(fileName) {
     await fetch(url, { method: 'DELETE' });
     toast('Foto eliminada', 'ok');
     await cargarGaleria();
-  } catch(e) { toast('Error: ' + e.message, 'err'); }
+  } catch (e) { toast('Error: ' + e.message, 'err'); }
 }
 
 // ── FULLSCREEN ───────────────────────────────────────────
@@ -731,14 +729,14 @@ document.getElementById('fullscreen-overlay').addEventListener('click', e => {
 
 // ── HELPERS ──────────────────────────────────────────────
 async function get(action) {
-  const res  = await fetch(APPS_SCRIPT_URL + '?action=' + action, { cache: 'no-cache' });
+  const res = await fetch(APPS_SCRIPT_URL + '?action=' + action, { cache: 'no-cache' });
   return res.json();
 }
 
 async function post(action, body) {
   const res = await fetch(APPS_SCRIPT_URL, {
     method: 'POST',
-    cache:  'no-cache',
+    cache: 'no-cache',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify({ action, ...body })
   });
@@ -747,7 +745,7 @@ async function post(action, body) {
 
 function showMsg(el, text, ok) {
   el.textContent = text;
-  el.className   = 'form-msg ' + (ok ? 'ok' : 'err');
+  el.className = 'form-msg ' + (ok ? 'ok' : 'err');
   setTimeout(() => { el.textContent = ''; el.className = 'form-msg'; }, 5000);
 }
 
@@ -786,11 +784,11 @@ function formatMoney(v) {
 }
 
 function darken(hex, pct) {
-  const n   = parseInt(hex.replace('#',''), 16);
-  const r   = Math.max(0, (n >> 16) - pct);
-  const g   = Math.max(0, ((n >> 8) & 0xFF) - pct);
-  const b   = Math.max(0, (n & 0xFF) - pct);
-  return '#' + [r,g,b].map(c => c.toString(16).padStart(2,'0')).join('');
+  const n = parseInt(hex.replace('#', ''), 16);
+  const r = Math.max(0, (n >> 16) - pct);
+  const g = Math.max(0, ((n >> 8) & 0xFF) - pct);
+  const b = Math.max(0, (n & 0xFF) - pct);
+  return '#' + [r, g, b].map(c => c.toString(16).padStart(2, '0')).join('');
 }
 
 // ── METAS ────────────────────────────────────────────────
@@ -814,7 +812,7 @@ async function cargarMetas() {
         <div class="meta-edit">
           <input class="meta-input" type="text" value="${m.meta}" data-kpi="${m.kpiId}" placeholder="Meta">
           <span class="meta-tipo">${m.tipoMeta || ''}</span>
-          <span class="meta-peso">${typeof m.pesoPPM === 'number' ? (m.pesoPPM*100).toFixed(0)+'%' : (m.pesoPPM||'')}</span>
+          <span class="meta-peso">${typeof m.pesoPPM === 'number' ? (m.pesoPPM * 100).toFixed(0) + '%' : (m.pesoPPM || '')}</span>
         </div>
       `;
       wrap.appendChild(row);
@@ -840,18 +838,18 @@ async function cargarMetas() {
       if (!pwd) { showMsg(msg, 'Ingresa la contraseña.', false); return; }
 
       const inputs = wrap.querySelectorAll('.meta-input');
-      const btn    = document.getElementById('metas-guardar-btn');
+      const btn = document.getElementById('metas-guardar-btn');
       btn.disabled = true; btn.textContent = 'Guardando...';
 
       let errores = 0;
       for (const inp of inputs) {
-        const kpiId    = inp.dataset.kpi;
+        const kpiId = inp.dataset.kpi;
         const nuevaMeta = inp.value.trim();
         if (!nuevaMeta) continue;
         try {
           const res = await post('actualizarMeta', { kpiId, nuevaMeta, password: pwd });
           if (!res.success) errores++;
-        } catch(_) { errores++; }
+        } catch (_) { errores++; }
       }
 
       btn.disabled = false; btn.textContent = 'Guardar metas →';
@@ -863,7 +861,7 @@ async function cargarMetas() {
       }
     });
 
-  } catch(e) {
+  } catch (e) {
     wrap.innerHTML = '<p style="color:var(--text-2);padding:20px">Error: ' + e.message + '</p>';
   }
 }
@@ -896,7 +894,7 @@ async function abrirPopupTerminales() {
     // Agrupar por modelo + modalidad (tipoEntrada o tipoEntradaRegla)
     const grupos = {};
     equipos.forEach(v => {
-      const modelo    = v.modeloEquipo || 'Sin modelo';
+      const modelo = v.modeloEquipo || 'Sin modelo';
       const modalidad = v.tipoEntrada || v.tipoEntradaRegla || '—';
       const key = modelo + '||' + modalidad;
       grupos[key] = (grupos[key] || 0) + (parseInt(v.cantidadVendida) || 1);
@@ -913,7 +911,7 @@ async function abrirPopupTerminales() {
         <thead><tr><th>Modelo</th><th>Modalidad</th><th>Cant.</th></tr></thead>
         <tbody>${filas}</tbody>
       </table>`;
-  } catch(e) {
+  } catch (e) {
     popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2);padding:20px">Error: ' + e.message + '</p>';
   }
 }
@@ -945,9 +943,9 @@ async function abrirPopupFO() {
         <td></td>
       `;
       const tdBtn = tr.querySelector('td:last-child');
-      const btn   = document.createElement('button');
-      let estado  = v.instalacionFO === true || v.instalacionFO === 'true' || v.instalacionFO === 'TRUE';
-      btn.className   = 'btn-fo-toggle ' + (estado ? 'fo-si' : 'fo-no');
+      const btn = document.createElement('button');
+      let estado = v.instalacionFO === true || v.instalacionFO === 'true' || v.instalacionFO === 'TRUE';
+      btn.className = 'btn-fo-toggle ' + (estado ? 'fo-si' : 'fo-no');
       btn.textContent = estado ? '✅ Instalada' : '❌ Pendiente';
       btn.addEventListener('click', async () => {
         const pwd = prompt('Contraseña para editar:');
@@ -956,12 +954,12 @@ async function abrirPopupFO() {
         try {
           const r = await post('editarInstalacionFO', { fila: parseInt(v.filaReal), valor: nuevoEstado, password: pwd });
           if (r.success) {
-            estado          = nuevoEstado;
+            estado = nuevoEstado;
             btn.textContent = estado ? '✅ Instalada' : '❌ Pendiente';
-            btn.className   = 'btn-fo-toggle ' + (estado ? 'fo-si' : 'fo-no');
+            btn.className = 'btn-fo-toggle ' + (estado ? 'fo-si' : 'fo-no');
             toast('Actualizado', 'ok');
           } else { toast('Error: ' + r.error, 'err'); }
-        } catch(err) { toast('Error: ' + err.message, 'err'); }
+        } catch (err) { toast('Error: ' + err.message, 'err'); }
       });
       tdBtn.appendChild(btn);
       tbody.appendChild(tr);
@@ -970,7 +968,7 @@ async function abrirPopupFO() {
     table.appendChild(tbody);
     popup.querySelector('.popup-body').innerHTML = '';
     popup.querySelector('.popup-body').appendChild(table);
-  } catch(e) {
+  } catch (e) {
     popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2);padding:20px">Error: ' + e.message + '</p>';
   }
 }
@@ -987,41 +985,107 @@ function initAceleradoresControls() {
 
 async function abrirPopupEditarAceleradores() {
   const popup = crearPopupBase('✏️ Editar Aceleradores');
+  popup.querySelector('.popup-body').innerHTML = '<div class="loader-wrap"><div class="spinner"></div></div>';
+  
   try {
     const res = await get('getaceleradores');
-    const a   = res.success ? res.aceleradores : {};
-    popup.querySelector('.popup-body').innerHTML = `
-      <p style="font-size:0.82rem;color:var(--text-2);margin-bottom:16px">Edita el texto de cada acelerador. Se guardará en la hoja Aceleradores.</p>
-      <div class="field"><label>Voz Móvil (A2)</label><textarea class="acel-edit-input" rows="2" data-celda="A2">${a.voz || ''}</textarea></div>
-      <div class="field" style="margin-top:12px"><label>Fibra Óptica (A3)</label><textarea class="acel-edit-input" rows="2" data-celda="A3">${a.fo || ''}</textarea></div>
-      <div class="field" style="margin-top:12px"><label>Terminales (A4)</label><textarea class="acel-edit-input" rows="2" data-celda="A4">${a.terminales || ''}</textarea></div>
-      <div class="field" style="margin-top:12px"><label>Incentivo Terminales (A5)</label><textarea class="acel-edit-input" rows="2" data-celda="A5">${a.ofertaEspecial || ''}</textarea></div>
-      <div class="form-actions" style="margin-top:16px">
-        <div class="field" style="flex:1;max-width:220px"><label>Contraseña admin</label><input type="password" id="acel-edit-pwd" placeholder="Contraseña"></div>
-        <button class="btn-accent" id="acel-guardar-btn">Guardar →</button>
-      </div>
-      <p class="form-msg" id="acel-edit-msg"></p>
-    `;
+    if (!res.success) throw new Error(res.error);
+    
+    let aList = Array.isArray(res.aceleradores) ? res.aceleradores : [];
 
-    document.getElementById('acel-guardar-btn').addEventListener('click', async () => {
-      const pwd = document.getElementById('acel-edit-pwd').value;
-      const msg = document.getElementById('acel-edit-msg');
-      if (!pwd) { showMsg(msg, 'Ingresa la contraseña.', false); return; }
-      const inputs = popup.querySelectorAll('.acel-edit-input');
-      const cambios = Array.from(inputs).map(i => ({ celda: i.dataset.celda, valor: i.value }));
-      try {
-        const r = await post('editarAceleradores', { cambios, password: pwd });
-        if (r.success) {
-          showMsg(msg, '✅ Aceleradores guardados.', true);
-          toast('Aceleradores actualizados', 'ok');
-          cargarAceleradores();
-        } else {
-          showMsg(msg, '❌ ' + (r.error || 'Error'), false);
-        }
-      } catch(e) { showMsg(msg, '❌ ' + e.message, false); }
-    });
-  } catch(e) {
-    popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2)">Error: ' + e.message + '</p>';
+    function renderList() {
+      let html = '<p style="font-size:0.82rem;color:var(--text-2);margin-bottom:16px">Edita el título y la fórmula directamente. Al guardar, se reemplazará la hoja usando A y B.</p>';
+      html += '<div id="acel-edit-list" style="display:flex;flex-direction:column;gap:16px;margin-bottom:16px;">';
+      
+      aList.forEach((item, index) => {
+        html += `
+          <div class="acel-edit-row" style="background:var(--bg-alt);padding:14px;border-radius:10px;position:relative;border:1px solid var(--border)">
+            <div style="display:flex;gap:12px;margin-bottom:10px;">
+              <div class="field" style="flex:1;">
+                <label>Título de la Tarjeta</label>
+                <input type="text" class="acel-titulo" value="${item.titulo || ''}" placeholder="Ej: Voz Móvil">
+              </div>
+              <button class="btn-borrar-acel" data-idx="${index}" title="Eliminar" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:#d63031;padding:26px 0 0 0">🗑️</button>
+            </div>
+            <div class="field">
+              <label>Fórmula o Texto <span style="font-weight:normal;opacity:0.6;font-size:0.75rem">— Valor actual: ${String(item.valorEvaluado || '').substring(0,40)}</span></label>
+              <textarea class="acel-formula" rows="3" placeholder="Ej: =&quot;Llevas &quot; & COUNTIF(...)">${item.formulaOTexto || ''}</textarea>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      
+      html += `<button class="btn-sm btn-ghost" id="btn-add-acel" style="margin-bottom:24px;border-color:var(--accent);color:var(--accent);width:100%;justify-content:center">+ Agregar Nuevo Acelerador</button>`;
+      
+      html += `
+        <div class="form-actions">
+          <div class="field" style="flex:1;max-width:220px">
+            <label>Contraseña admin</label>
+            <input type="password" id="acel-edit-pwd" placeholder="Contraseña">
+          </div>
+          <button class="btn-accent" id="acel-guardar-btn">Guardar en Sheets →</button>
+        </div>
+        <p class="form-msg" id="acel-edit-msg"></p>
+      `;
+      return html;
+    }
+
+    const setHtml = () => {
+      popup.querySelector('.popup-body').innerHTML = renderList();
+      
+      // Events for delete
+      popup.querySelectorAll('.btn-borrar-acel').forEach(btn => {
+        btn.addEventListener('click', e => {
+          const idx = parseInt(e.currentTarget.dataset.idx);
+          aList.splice(idx, 1);
+          setHtml();
+        });
+      });
+
+      // Event for add
+      document.getElementById('btn-add-acel').addEventListener('click', () => {
+        aList.push({ titulo: '', formulaOTexto: '', valorEvaluado: '' });
+        setHtml();
+      });
+
+      // Guardar
+      document.getElementById('acel-guardar-btn').addEventListener('click', async () => {
+        // Recoger inputs
+        const rowEls = popup.querySelectorAll('.acel-edit-row');
+        const itemsToSave = [];
+        rowEls.forEach(row => {
+          const tit = row.querySelector('.acel-titulo').value.trim();
+          const form = row.querySelector('.acel-formula').value.trim();
+          if (tit || form) itemsToSave.push({ titulo: tit, formulaOTexto: form });
+        });
+
+        const pwd = document.getElementById('acel-edit-pwd').value;
+        const msg = document.getElementById('acel-edit-msg');
+        if (!pwd) { showMsg(msg, 'Ingresa la contraseña admin.', false); return; }
+
+        const btn = document.getElementById('acel-guardar-btn');
+        btn.disabled = true; btn.textContent = 'Guardando...';
+
+        try {
+          const r = await post('editarAceleradores', { items: itemsToSave, password: pwd });
+          if (r.success) {
+            showMsg(msg, '✅ Aceleradores guardados exitosamente.', true);
+            toast('Aceleradores actualizados', 'ok');
+            cargarAceleradores();
+            setTimeout(() => { popup.remove(); document.getElementById('generic-overlay').remove(); }, 1200);
+          } else {
+            showMsg(msg, '❌ ' + (r.error || 'Error'), false);
+          }
+        } catch (e) { showMsg(msg, '❌ ' + e.message, false); }
+        finally { btn.disabled = false; btn.textContent = 'Guardar en Sheets →'; }
+      });
+    };
+
+    setHtml();
+    
+  } catch (e) {
+    popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2);padding:20px">Error: ' + e.message + '</p>';
   }
 }
 
