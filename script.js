@@ -285,9 +285,9 @@ async function cargarFaltantes() {
         <thead><tr><th>KPI</th><th>Falta p/100%</th><th>Falta p/150%</th><th>Falta p/250%</th></tr></thead>
         <tbody>${res.faltantes.map(f => `<tr>
           <td><strong>${f.kpi}</strong></td>
-          <td>${formatVal(f.falta100)}</td>
-          <td>${formatVal(f.falta150)}</td>
-          <td>${formatVal(f.falta250)}</td>
+          <td>${formatVal(f.falta100, false, true)}</td>
+          <td>${formatVal(f.falta150, false, true)}</td>
+          <td>${formatVal(f.falta250, false, true)}</td>
         </tr>`).join('')}</tbody>
       </table>`;
     } else {
@@ -301,13 +301,13 @@ async function cargarFaltantes() {
         <thead><tr><th>Gestión</th><th>Entrada</th><th>Unidad</th><th>Subtotal</th><th>Resultado</th><th>Partida</th></tr></thead>
         <tbody>${gestion.map(i => `<tr>
           <td>${i.gestion}</td>
-          <td>${formatVal(i.entrada)}</td>
+          <td>${formatVal(i.entrada, false, true)}</td>
           <td>
              <input type="number" step="any" class="input-unidad-gestion" data-fila="${i.filaEnSheet}" value="${i.unidad !== '' && i.unidad !== undefined ? i.unidad : ''}" style="width:60px; padding:4px; text-align:center; background:var(--bg-alt); border:1px solid var(--border); color:inherit; border-radius:4px;">
           </td>
-          <td>${formatVal(i.subtotal)}</td>
-          <td>${i.resultado !== '' && i.resultado !== undefined ? formatVal(i.resultado) : ''}</td>
-          <td>${i.partida !== '' && i.partida !== undefined ? formatVal(i.partida) : ''}</td>
+          <td>${formatVal(i.subtotal, false, true)}</td>
+          <td>${i.resultado !== '' && i.resultado !== undefined ? formatVal(i.resultado, false, true) : ''}</td>
+          <td>${i.partida !== '' && i.partida !== undefined ? formatVal(i.partida, false, true) : ''}</td>
         </tr>`).join('')}</tbody>
       </table>`;
 
@@ -839,13 +839,13 @@ function toast(text, type = 'ok') {
   setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
 }
 
-function formatVal(v, esPorc) {
+function formatVal(v, esPorc = false, forzarNumero = false) {
   if (v === null || v === undefined || v === '') return '—';
   if (typeof v === 'number') {
     if (v === 0) return '0';
     if (Math.abs(v) >= 1000) return '$' + v.toLocaleString('es-CL');
     // Si es porcentaje (entre 0 y 2, con decimales) mostrar como %
-    if (esPorc || (v > 0 && v <= 2 && v % 1 !== 0)) return (v * 100).toFixed(0) + '%';
+    if (esPorc || (!forzarNumero && v > 0 && v <= 2 && v % 1 !== 0)) return (v * 100).toFixed(0) + '%';
     return v % 1 === 0 ? v.toString() : v.toFixed(1);
   }
   if (typeof v === 'string' && v.includes('%')) return v;
