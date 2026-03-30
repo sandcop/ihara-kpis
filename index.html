@@ -1,502 +1,590 @@
 <!DOCTYPE html>
 <html lang="es" data-theme="dark">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Ventas</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
 
-<!-- LOGIN -->
-<div class="login-screen" id="login-screen">
-  <div class="login-card">
-    <div class="login-logo">
-      <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-        <rect width="40" height="40" rx="12" fill="var(--accent)"/>
-        <path d="M10 28L18 12L26 22L30 16" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="30" cy="16" r="2.5" fill="white"/>
-      </svg>
-    </div>
-    <h1 class="login-title">Dashboard<br>de Ventas</h1>
-    <p class="login-sub">Ingresa tu contraseña para continuar</p>
-    <div class="login-field">
-      <input type="password" id="login-input" placeholder="Contraseña" autocomplete="current-password">
-    </div>
-    <button class="btn-accent" id="login-btn">Ingresar →</button>
-    <p class="login-error" id="login-error"></p>
-  </div>
-</div>
-
-<!-- APP -->
-<div class="app" id="app" style="display:none">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-top">
-      <div class="sidebar-brand">
-        <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
-          <rect width="40" height="40" rx="10" fill="var(--accent)"/>
-          <path d="M10 28L18 12L26 22L30 16" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="30" cy="16" r="2.5" fill="white"/>
+  <!-- LOGIN -->
+  <div class="login-screen" id="login-screen">
+    <div class="login-card">
+      <div class="login-logo">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <rect width="40" height="40" rx="12" fill="var(--accent)" />
+          <path d="M10 28L18 12L26 22L30 16" stroke="white" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+          <circle cx="30" cy="16" r="2.5" fill="white" />
         </svg>
-        <span class="sidebar-brand-name" id="sidebar-brand-name">Dashboard</span>
       </div>
-      <button class="sidebar-close" id="sidebar-close">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+      <h1 class="login-title">Dashboard<br>de Ventas</h1>
+      <p class="login-sub">Ingresa tu contraseña para continuar</p>
+      <div class="login-field">
+        <input type="password" id="login-input" placeholder="Contraseña" autocomplete="current-password">
+      </div>
+      <button class="btn-accent" id="login-btn">Ingresar →</button>
+      <p class="login-error" id="login-error"></p>
     </div>
+  </div>
 
-    <nav class="sidebar-nav">
-      <a href="#inicio"         class="nav-item active" data-section="inicio">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Inicio
-      </a>
-      <a href="#kpis"           class="nav-item" data-section="kpis">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        KPIs
-      </a>
-      <a href="#faltantes"      class="nav-item" data-section="faltantes">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        Faltantes
-      </a>
-      <a href="#registrar"      class="nav-item" data-section="registrar">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        Registrar Venta
-      </a>
-      <a href="#codigos"        class="nav-item" data-section="codigos">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-        Códigos
-      </a>
-      <a href="#metas" class="nav-item" data-section="metas">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        Metas
-      </a>
-      <a href="#personalizacion" class="nav-item" data-section="personalizacion">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
-        Personalizar
-      </a>
-    </nav>
+  <!-- APP -->
+  <div class="app" id="app" style="display:none">
 
-    <div class="sidebar-bottom">
-      <div class="sidebar-user">
-        <div class="user-avatar" id="user-avatar">E</div>
-        <div class="user-info">
-          <span class="user-name" id="user-name">Ejecutivo</span>
-          <span class="user-time" id="user-time">--:--</span>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <div class="sidebar-brand">
+          <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+            <rect width="40" height="40" rx="10" fill="var(--accent)" />
+            <path d="M10 28L18 12L26 22L30 16" stroke="white" stroke-width="2.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <circle cx="30" cy="16" r="2.5" fill="white" />
+          </svg>
+          <span class="sidebar-brand-name" id="sidebar-brand-name">Dashboard</span>
         </div>
-      </div>
-      <button class="theme-toggle" id="theme-toggle" title="Cambiar tema">
-        <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-      </button>
-    </div>
-  </aside>
-
-  <!-- MOBILE HEADER -->
-  <header class="mobile-header">
-    <button class="hamburger" id="hamburger">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-    <span class="mobile-title" id="mobile-title">Dashboard</span>
-    <div style="width:40px"></div>
-  </header>
-
-  <!-- OVERLAY MÓVIL -->
-  <div class="sidebar-overlay" id="sidebar-overlay"></div>
-
-  <!-- CONTENIDO PRINCIPAL -->
-  <main class="main" id="main">
-
-    <!-- ── INICIO ── -->
-    <section id="section-inicio" class="section active">
-      <div class="section-header">
-        <h2 class="section-title">Inicio</h2>
-        <p class="section-sub" id="greeting-text">Bienvenido</p>
-      </div>
-
-      <!-- Última venta -->
-      <div class="info-card" id="ultima-venta-card">
-        <div class="info-card-label">Última venta registrada</div>
-        <div class="info-card-value" id="ultima-venta-nombre">—</div>
-        <div class="info-card-meta" id="ultima-venta-meta">—</div>
-      </div>
-
-      <!-- Galería familiar -->
-      <div class="galeria-wrap">
-        <div class="galeria-header">
-          <h3 class="galeria-titulo">Galería</h3>
-          <button class="btn-sm btn-accent" id="btn-subir-foto">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Subir foto
-          </button>
-          <input type="file" id="galeria-input" accept="image/*" style="display:none">
-        </div>
-        <div class="galeria-main-wrap">
-          <img id="galeria-main" src="" alt="" class="galeria-main-img" style="display:none">
-          <div class="galeria-empty" id="galeria-empty">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <p>Sin fotos aún</p>
-          </div>
-          <button class="galeria-del-btn" id="galeria-del-btn" style="display:none" title="Eliminar foto">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-          </button>
-        </div>
-        <div class="galeria-thumbs" id="galeria-thumbs"></div>
-      </div>
-    </section>
-
-    <!-- ── KPIs ── -->
-    <section id="section-kpis" class="section">
-      <div class="section-header">
-        <h2 class="section-title">KPIs del Mes</h2>
-        <button class="btn-sm btn-ghost" id="btn-refresh-kpis">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
-          Actualizar
+        <button class="sidebar-close" id="sidebar-close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </div>
 
-      <!-- Resumen cumplimiento -->
-      <div class="cumpl-banner" id="cumpl-banner">
-        <div class="cumpl-item">
-          <span class="cumpl-label">Cumplimiento</span>
-          <span class="cumpl-val" id="cumpl-porc">—</span>
-        </div>
-        <div class="cumpl-divider"></div>
-        <div class="cumpl-item">
-          <span class="cumpl-label">Comisión estimada</span>
-          <span class="cumpl-val" id="cumpl-comision">—</span>
-        </div>
-      </div>
+      <nav class="sidebar-nav">
+        <a href="#inicio" class="nav-item active" data-section="inicio">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          Inicio
+        </a>
+        <a href="#kpis" class="nav-item" data-section="kpis">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+          KPIs
+        </a>
+        <a href="#faltantes" class="nav-item" data-section="faltantes">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          Faltantes
+        </a>
+        <a href="#registrar" class="nav-item" data-section="registrar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="16" />
+            <line x1="8" y1="12" x2="16" y2="12" />
+          </svg>
+          Registrar Venta
+        </a>
+        <a href="#codigos" class="nav-item" data-section="codigos">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" />
+          </svg>
+          Códigos
+        </a>
+        <a href="#metas" class="nav-item" data-section="metas">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          Metas
+        </a>
+        <a href="#personalizacion" class="nav-item" data-section="personalizacion">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14" />
+          </svg>
+          Personalizar
+        </a>
+      </nav>
 
-      <div class="kpi-grid" id="kpi-grid">
-        <div class="loader-wrap"><div class="spinner"></div></div>
-      </div>
-      <!-- Aceleradores -->
-      <div style="display:flex;align-items:center;gap:10px;margin-top:32px;margin-bottom:12px">
-        <h3 class="subsection-title" style="margin:0">Aceleradores</h3>
-        <button class="btn-sm btn-ghost" id="acel-btn-ocultar">🙈 Ocultar</button>
-        <button class="btn-sm btn-ghost" id="acel-btn-editar">✏️ Editar</button>
-      </div>
-      <div class="acel-grid" id="acel-grid">
-        <div class="loader-wrap"><div class="spinner"></div></div>
-      </div>
-      <div class="acel-total-wrap" id="acel-total-wrap" style="display:none">
-        <span class="acel-total-label">Total aceleradores</span>
-        <span class="acel-total-val" id="acel-total-val">$0</span>
-      </div>
-    </section>
-
-    <!-- ── FALTANTES ── -->
-    <section id="section-faltantes" class="section">
-      <div class="section-header">
-        <h2 class="section-title">¿Cuánto me falta?</h2>
-      </div>
-      <div class="table-wrap" id="faltantes-wrap">
-        <div class="loader-wrap"><div class="spinner"></div></div>
-      </div>
-
-      <!-- Gestión / Puntos -->
-      <h3 class="subsection-title" style="margin-top:32px">Gestión de Puntos</h3>
-      <div class="table-wrap" id="gestion-wrap">
-        <div class="loader-wrap"><div class="spinner"></div></div>
-      </div>
-    </section>
-
-    <!-- ── REGISTRAR VENTA ── -->
-    <section id="section-registrar" class="section">
-      <div class="section-header">
-        <h2 class="section-title">Registrar Venta</h2>
-      </div>
-      <form class="venta-form" id="venta-form" autocomplete="off">
-        <div class="form-grid">
-          <div class="field">
-            <label>Fecha</label>
-            <input type="date" name="fecha" id="vf-fecha">
-          </div>
-          <div class="field">
-            <label>N° Suscripción</label>
-            <input type="text" name="suscripcion" placeholder="Ej: 123456789">
-          </div>
-          <div class="field">
-            <label>N° Aloha</label>
-            <input type="text" name="aloha" placeholder="Ej: ALO-001">
-          </div>
-          <div class="field">
-            <label>RUT Cliente</label>
-            <input type="text" name="rut" placeholder="12.345.678-9">
-          </div>
-          <div class="field field-wide">
-            <label>Nombre Completo</label>
-            <input type="text" name="nombreCompleto" placeholder="Juan Pérez García">
-          </div>
-          <div class="field">
-            <label>Tipo KPI Principal</label>
-            <select name="tipoKPIPrincipal" id="vf-tipo-kpi">
-              <option value="">Seleccionar...</option>
-              <option value="VOZ_MOVIL">VOZ_MOVIL</option>
-              <option value="FO_TERMINADA">FO_TERMINADA</option>
-              <option value="TERMINALES">TERMINALES</option>
-              <option value="ACCESORIOS">ACCESORIOS</option>
-              <option value="PPT">PPT</option>
-              <option value="MIGRACIÓN">MIGRACIÓN</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Categoría Regla</label>
-            <select name="categoriaRegla" id="vf-categoria">
-              <option value="">Seleccionar...</option>
-              <option value="Móvil">Móvil</option>
-              <option value="Fijo">Fijo</option>
-              <option value="Equipos">Equipos</option>
-              <option value="Accesorios">Accesorios</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Código Producto</label>
-            <select name="codigoProducto" id="vf-codigo">
-              <option value="">Seleccionar...</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Tipo Entrada Regla</label>
-            <select name="tipoEntradaRegla" id="vf-tipo-entrada">
-              <option value="">Seleccionar...</option>
-              <option value="Alta Normal">Alta Normal</option>
-              <option value="Portada Prepago">Portada Prepago</option>
-              <option value="Portada Postpago">Portada Postpago</option>
-              <option value="Alta Totalización">Alta Totalización</option>
-              <option value="Porta Pre Totalizada">Porta Pre Totalizada</option>
-              <option value="Porta Post Totalizada">Porta Post Totalizada</option>
-              <option value="Alta Completación">Alta Completación</option>
-              <option value="Porta Pre Completación">Porta Pre Completación</option>
-              <option value="Porta Post Completación">Porta Post Completación</option>
-              <option value="Alta Migrada">Alta Migrada</option>
-              <option value="Alta Ppt">Alta Ppt</option>
-              <option value="Solo BAF">Solo BAF</option>
-              <option value="BAF+TV Paquet.">BAF+TV Paquet.</option>
-              <option value="Solo BAF Tota">Solo BAF Tota</option>
-              <option value="BAF+TV Paq.Tota">BAF+TV Paq.Tota</option>
-              <option value="MIXTO">MIXTO</option>
-              <option value="INTERNO">INTERNO</option>
-              <option value="FULL PRICE">FULL PRICE</option>
-              <option value="PAGO EXTERNO">PAGO EXTERNO</option>
-              <option value="DIFERENCIADO">DIFERENCIADO</option>
-              <option value="MONE MIXTO">MONE MIXTO</option>
-              <option value="Venta Accesorio">Venta Accesorio</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Cantidad Vendida</label>
-            <input type="number" name="cantidadVendida" id="vf-cantidad" placeholder="1" min="1" value="1">
-          </div>
-          <div class="field">
-            <label>Entradas Equiv. por Unidad</label>
-            <input type="text" id="vf-entradas-unit" readonly placeholder="Auto-detectado">
-          </div>
-          <div class="field">
-            <label>Total Entradas Equiv.</label>
-            <input type="text" id="vf-entradas-total" readonly placeholder="Auto-calculado">
-          </div>
-          <div class="field">
-            <label>N° Orden</label>
-            <input type="text" name="orden" placeholder="Ej: 987654">
-          </div>
-          <div class="field">
-            <label>Modelo Equipo</label>
-            <input type="text" name="modeloEquipo" placeholder="Ej: Samsung A55">
-          </div>
-          <div class="field">
-            <label>Valor Equipo</label>
-            <input type="number" name="valorEquipo" placeholder="0">
-          </div>
-          <div class="field">
-            <label>Monto Accesorio</label>
-            <input type="number" name="montoAccesorio" placeholder="0">
-          </div>
-          <div class="field">
-            <label>Nombre Accesorio</label>
-            <input type="text" name="nombreAccesorio" placeholder="Ej: Cargador">
-          </div>
-          <div class="field">
-            <label>RGU</label>
-            <input type="text" name="rgu" placeholder="Ej: 1">
+      <div class="sidebar-bottom">
+        <div class="sidebar-user">
+          <div class="user-avatar" id="user-avatar">E</div>
+          <div class="user-info">
+            <span class="user-name" id="user-name">Ejecutivo</span>
+            <span class="user-time" id="user-time">--:--</span>
           </div>
         </div>
-
-        <div class="form-checks">
-          <label class="check-item">
-            <input type="checkbox" name="seguro">
-            <span class="checkmark"></span>
-            Seguro
-          </label>
-          <label class="check-item">
-            <input type="checkbox" name="instalacionFO">
-            <span class="checkmark"></span>
-            Instalación FO
-          </label>
-        </div>
-
-        <div class="form-actions">
-          <div class="field" style="flex:1;max-width:260px">
-            <label>Contraseña</label>
-            <input type="password" id="vf-password" placeholder="Contraseña de ventas">
-          </div>
-          <button type="submit" class="btn-accent" id="vf-submit">Registrar Venta</button>
-        </div>
-        <p class="form-msg" id="vf-msg"></p>
-      </form>
-    </section>
-
-    <!-- ── CÓDIGOS ── -->
-    <section id="section-codigos" class="section">
-      <div class="section-header">
-        <h2 class="section-title">Actualizador de Códigos</h2>
-        <p class="section-sub">Reemplaza CodigoProducto (col B) y/o ValorEntradaEquiv (col F)</p>
+        <button class="theme-toggle" id="theme-toggle" title="Cambiar tema">
+          <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+          </svg>
+          <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+          </svg>
+        </button>
       </div>
+    </aside>
 
-      <div class="codigos-form-wrap">
-        <div class="codigos-form">
-          <div class="codigos-row">
-            <div class="field">
-              <label>Código viejo (col B)</label>
-              <input type="text" id="cod-viejo" placeholder="Ej: Cod_3NA">
+    <!-- MOBILE HEADER -->
+    <header class="mobile-header">
+      <button class="hamburger" id="hamburger">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+      <span class="mobile-title" id="mobile-title">Dashboard</span>
+      <div style="width:40px"></div>
+    </header>
+
+    <!-- OVERLAY MÓVIL -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main" id="main">
+
+      <!-- ── INICIO ── -->
+      <section id="section-inicio" class="section active">
+        <div class="section-header">
+          <h2 class="section-title">Inicio</h2>
+          <p class="section-sub" id="greeting-text">Bienvenido</p>
+        </div>
+
+        <!-- Última venta -->
+        <div class="info-card" id="ultima-venta-card">
+          <div class="info-card-label">Última venta registrada</div>
+          <div class="info-card-value" id="ultima-venta-nombre">—</div>
+          <div class="info-card-meta" id="ultima-venta-meta">—</div>
+        </div>
+
+        <!-- Galería familiar -->
+        <div class="galeria-wrap">
+          <div class="galeria-header">
+            <h3 class="galeria-titulo">Galería</h3>
+            <button class="btn-sm btn-accent" id="btn-subir-foto">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              Subir foto
+            </button>
+            <input type="file" id="galeria-input" accept="image/*" style="display:none">
+          </div>
+          <div class="galeria-main-wrap">
+            <img id="galeria-main" src="" alt="" class="galeria-main-img" style="display:none">
+            <div class="galeria-empty" id="galeria-empty">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
+              <p>Sin fotos aún</p>
             </div>
-            <div class="arrow-sep">→</div>
+            <button class="galeria-del-btn" id="galeria-del-btn" style="display:none" title="Eliminar foto">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14H6L5 6" />
+                <path d="M10 11v6M14 11v6" />
+                <path d="M9 6V4h6v2" />
+              </svg>
+            </button>
+          </div>
+          <div class="galeria-thumbs" id="galeria-thumbs"></div>
+        </div>
+      </section>
+
+      <!-- ── KPIs ── -->
+      <section id="section-kpis" class="section">
+        <div class="section-header">
+          <h2 class="section-title">KPIs del Mes</h2>
+          <button class="btn-sm btn-ghost" id="btn-refresh-kpis">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10" />
+              <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
+            </svg>
+            Actualizar
+          </button>
+        </div>
+
+        <!-- Resumen cumplimiento -->
+        <div class="cumpl-banner" id="cumpl-banner">
+          <div class="cumpl-item">
+            <span class="cumpl-label">Cumplimiento</span>
+            <span class="cumpl-val" id="cumpl-porc">—</span>
+          </div>
+          <div class="cumpl-divider"></div>
+          <div class="cumpl-item">
+            <span class="cumpl-label">Comisión estimada</span>
+            <span class="cumpl-val" id="cumpl-comision">—</span>
+          </div>
+        </div>
+
+        <div class="kpi-grid" id="kpi-grid">
+          <div class="loader-wrap">
+            <div class="spinner"></div>
+          </div>
+        </div>
+        <!-- Aceleradores -->
+        <div style="display:flex;align-items:center;gap:10px;margin-top:32px;margin-bottom:12px">
+          <h3 class="subsection-title" style="margin:0">Aceleradores</h3>
+          <button class="btn-sm btn-ghost" id="acel-btn-ocultar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Ocultar
+          </button>
+          <button class="btn-sm btn-ghost" id="acel-btn-editar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Editar
+          </button>
+        </div>
+        <div class="acel-grid" id="acel-grid">
+          <div class="loader-wrap">
+            <div class="spinner"></div>
+          </div>
+        </div>
+        <div class="acel-total-wrap" id="acel-total-wrap" style="display:none">
+          <span class="acel-total-label">Total aceleradores</span>
+          <span class="acel-total-val" id="acel-total-val">$0</span>
+        </div>
+      </section>
+
+      <!-- ── FALTANTES ── -->
+      <section id="section-faltantes" class="section">
+        <div class="section-header">
+          <h2 class="section-title">¿Cuánto me falta?</h2>
+        </div>
+        <div class="table-wrap" id="faltantes-wrap">
+          <div class="loader-wrap">
+            <div class="spinner"></div>
+          </div>
+        </div>
+
+        <!-- Gestión / Puntos -->
+        <h3 class="subsection-title" style="margin-top:32px">Gestión de Puntos</h3>
+        <div class="table-wrap" id="gestion-wrap">
+          <div class="loader-wrap">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── REGISTRAR VENTA ── -->
+      <section id="section-registrar" class="section">
+        <div class="section-header">
+          <h2 class="section-title">Registrar Venta</h2>
+        </div>
+        <form class="venta-form" id="venta-form" autocomplete="off">
+          <div class="form-grid">
             <div class="field">
-              <label>Código nuevo (col B)</label>
-              <input type="text" id="cod-nuevo" placeholder="Ej: Cod_2YB">
+              <label>Fecha</label>
+              <input type="date" name="fecha" id="vf-fecha">
+            </div>
+            <div class="field">
+              <label>N° Suscripción</label>
+              <input type="text" name="suscripcion" placeholder="Ej: 123456789">
+            </div>
+            <div class="field">
+              <label>N° Aloha</label>
+              <input type="text" name="aloha" placeholder="Ej: ALO-001">
+            </div>
+            <div class="field">
+              <label>RUT Cliente</label>
+              <input type="text" name="rut" placeholder="12.345.678-9">
+            </div>
+            <div class="field field-wide">
+              <label>Nombre Completo</label>
+              <input type="text" name="nombreCompleto" placeholder="Juan Pérez García">
+            </div>
+            <div class="field">
+              <label>Tipo KPI Principal</label>
+              <select name="tipoKPIPrincipal" id="vf-tipo-kpi">
+                <option value="">Seleccionar...</option>
+                <option value="VOZ_MOVIL">VOZ_MOVIL</option>
+                <option value="FO_TERMINADA">FO_TERMINADA</option>
+                <option value="TERMINALES">TERMINALES</option>
+                <option value="ACCESORIOS">ACCESORIOS</option>
+                <option value="PPT">PPT</option>
+                <option value="MIGRACIÓN">MIGRACIÓN</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Categoría Regla</label>
+              <select name="categoriaRegla" id="vf-categoria">
+                <option value="">Seleccionar...</option>
+                <option value="Móvil">Móvil</option>
+                <option value="Fijo">Fijo</option>
+                <option value="Equipos">Equipos</option>
+                <option value="Accesorios">Accesorios</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Código Producto</label>
+              <select name="codigoProducto" id="vf-codigo">
+                <option value="">Seleccionar...</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Tipo Entrada Regla</label>
+              <select name="tipoEntradaRegla" id="vf-tipo-entrada">
+                <option value="">Seleccionar...</option>
+                <option value="Alta Normal">Alta Normal</option>
+                <option value="Portada Prepago">Portada Prepago</option>
+                <option value="Portada Postpago">Portada Postpago</option>
+                <option value="Alta Totalización">Alta Totalización</option>
+                <option value="Porta Pre Totalizada">Porta Pre Totalizada</option>
+                <option value="Porta Post Totalizada">Porta Post Totalizada</option>
+                <option value="Alta Completación">Alta Completación</option>
+                <option value="Porta Pre Completación">Porta Pre Completación</option>
+                <option value="Porta Post Completación">Porta Post Completación</option>
+                <option value="Alta Migrada">Alta Migrada</option>
+                <option value="Alta Ppt">Alta Ppt</option>
+                <option value="Solo BAF">Solo BAF</option>
+                <option value="BAF+TV Paquet.">BAF+TV Paquet.</option>
+                <option value="Solo BAF Tota">Solo BAF Tota</option>
+                <option value="BAF+TV Paq.Tota">BAF+TV Paq.Tota</option>
+                <option value="MIXTO">MIXTO</option>
+                <option value="INTERNO">INTERNO</option>
+                <option value="FULL PRICE">FULL PRICE</option>
+                <option value="PAGO EXTERNO">PAGO EXTERNO</option>
+                <option value="DIFERENCIADO">DIFERENCIADO</option>
+                <option value="MONE MIXTO">MONE MIXTO</option>
+                <option value="Venta Accesorio">Venta Accesorio</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Cantidad Vendida</label>
+              <input type="number" name="cantidadVendida" id="vf-cantidad" placeholder="1" min="1" value="1">
+            </div>
+            <div class="field">
+              <label>Entradas Equiv. por Unidad</label>
+              <input type="text" id="vf-entradas-unit" readonly placeholder="Auto-detectado">
+            </div>
+            <div class="field">
+              <label>Total Entradas Equiv.</label>
+              <input type="text" id="vf-entradas-total" readonly placeholder="Auto-calculado">
+            </div>
+            <div class="field">
+              <label>N° Orden</label>
+              <input type="text" name="orden" placeholder="Ej: 987654">
+            </div>
+            <div class="field">
+              <label>Modelo Equipo</label>
+              <input type="text" name="modeloEquipo" placeholder="Ej: Samsung A55">
+            </div>
+            <div class="field">
+              <label>Valor Equipo</label>
+              <input type="number" name="valorEquipo" placeholder="0">
+            </div>
+            <div class="field">
+              <label>Monto Accesorio</label>
+              <input type="number" name="montoAccesorio" placeholder="0">
+            </div>
+            <div class="field">
+              <label>Nombre Accesorio</label>
+              <input type="text" name="nombreAccesorio" placeholder="Ej: Cargador">
+            </div>
+            <div class="field">
+              <label>RGU</label>
+              <input type="text" name="rgu" placeholder="Ej: 1">
             </div>
           </div>
-          <div class="codigos-row">
-            <div class="field">
-              <label>Valor viejo (col F) — opcional</label>
-              <input type="text" id="val-viejo" placeholder="Ej: 1.5">
-            </div>
-            <div class="arrow-sep">→</div>
-            <div class="field">
-              <label>Valor nuevo (col F) — opcional</label>
-              <input type="text" id="val-nuevo" placeholder="Ej: 1.7">
-            </div>
+
+          <div class="form-checks">
+            <label class="check-item">
+              <input type="checkbox" name="seguro">
+              <span class="checkmark"></span>
+              Seguro
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="instalacionFO">
+              <span class="checkmark"></span>
+              Instalación FO
+            </label>
           </div>
+
           <div class="form-actions">
             <div class="field" style="flex:1;max-width:260px">
-              <label>Contraseña admin</label>
-              <input type="password" id="cod-password" placeholder="Contraseña">
+              <label>Contraseña</label>
+              <input type="password" id="vf-password" placeholder="Contraseña de ventas">
             </div>
-            <button class="btn-accent" id="cod-btn-actualizar">Actualizar →</button>
+            <button type="submit" class="btn-accent" id="vf-submit">Registrar Venta</button>
           </div>
-          <p class="form-msg" id="cod-msg"></p>
+          <p class="form-msg" id="vf-msg"></p>
+        </form>
+      </section>
+
+      <!-- ── CÓDIGOS ── -->
+      <section id="section-codigos" class="section">
+        <div class="section-header">
+          <h2 class="section-title">Actualizador de Códigos</h2>
+          <p class="section-sub">Reemplaza CodigoProducto (col B) y/o ValorEntradaEquiv (col F)</p>
         </div>
-      </div>
 
-      <!-- Tabla de códigos actuales -->
-      <h3 class="subsection-title" style="margin-top:32px">Códigos actuales</h3>
-      <div class="table-wrap" id="codigos-tabla-wrap">
-        <div class="loader-wrap"><div class="spinner"></div></div>
-      </div>
-    </section>
-
-    <!-- ── METAS ── -->
-    <section id="section-metas" class="section">
-      <div class="section-header">
-        <h2 class="section-title">Metas KPI</h2>
-        <p class="section-sub">Modifica las metas de cada KPI en MetasYPesosKPI</p>
-      </div>
-      <div id="metas-wrap">
-        <div class="loader-wrap"><div class="spinner"></div></div>
-      </div>
-    </section>
-
-    <!-- ── PERSONALIZACIÓN ── -->
-    <section id="section-personalizacion" class="section">
-      <div class="section-header">
-        <h2 class="section-title">Personalización</h2>
-        <p class="section-sub">Adapta los colores y datos del dashboard</p>
-      </div>
-
-      <div class="pers-grid">
-        <div class="pers-card">
-          <h3 class="pers-card-title">Colores</h3>
-          <div class="field">
-            <label>Color principal (acento)</label>
-            <div class="color-pick-row">
-              <input type="color" id="pers-color-acento" value="#fb8500">
-              <input type="text" id="pers-color-acento-hex" placeholder="#fb8500" maxlength="7">
+        <div class="codigos-form-wrap">
+          <div class="codigos-form">
+            <div class="codigos-row">
+              <div class="field">
+                <label>Código viejo (col B)</label>
+                <input type="text" id="cod-viejo" placeholder="Ej: Cod_3NA">
+              </div>
+              <div class="arrow-sep">→</div>
+              <div class="field">
+                <label>Código nuevo (col B)</label>
+                <input type="text" id="cod-nuevo" placeholder="Ej: Cod_2YB">
+              </div>
             </div>
-            <div class="color-presets" id="presets-acento">
-              <button class="color-preset" data-color="#fb8500" style="background:#fb8500" title="Naranja"></button>
-              <button class="color-preset" data-color="#6c63ff" style="background:#6c63ff" title="Violeta"></button>
-              <button class="color-preset" data-color="#00b894" style="background:#00b894" title="Verde"></button>
-              <button class="color-preset" data-color="#e84393" style="background:#e84393" title="Rosa"></button>
-              <button class="color-preset" data-color="#0984e3" style="background:#0984e3" title="Azul"></button>
-              <button class="color-preset" data-color="#d63031" style="background:#d63031" title="Rojo"></button>
-              <button class="color-preset" data-color="#fdcb6e" style="background:#fdcb6e" title="Amarillo"></button>
-              <button class="color-preset" data-color="#00cec9" style="background:#00cec9" title="Cyan"></button>
+            <div class="codigos-row">
+              <div class="field">
+                <label>Valor viejo (col F) — opcional</label>
+                <input type="text" id="val-viejo" placeholder="Ej: 1.5">
+              </div>
+              <div class="arrow-sep">→</div>
+              <div class="field">
+                <label>Valor nuevo (col F) — opcional</label>
+                <input type="text" id="val-nuevo" placeholder="Ej: 1.7">
+              </div>
             </div>
-          </div>
-          <div class="field" style="margin-top:16px">
-            <label>Color secundario (sidebar)</label>
-            <div class="color-pick-row">
-              <input type="color" id="pers-color-sidebar" value="#023047">
-              <input type="text" id="pers-color-sidebar-hex" placeholder="#023047" maxlength="7">
+            <div class="form-actions">
+              <div class="field" style="flex:1;max-width:260px">
+                <label>Contraseña admin</label>
+                <input type="password" id="cod-password" placeholder="Contraseña">
+              </div>
+              <button class="btn-accent" id="cod-btn-actualizar">Actualizar →</button>
             </div>
-            <div class="color-presets" id="presets-sidebar">
-              <button class="color-preset" data-color="#023047" style="background:#023047" title="Azul oscuro"></button>
-              <button class="color-preset" data-color="#1a1a2e" style="background:#1a1a2e" title="Navy"></button>
-              <button class="color-preset" data-color="#2d3436" style="background:#2d3436" title="Grafito"></button>
-              <button class="color-preset" data-color="#6c5ce7" style="background:#6c5ce7" title="Violeta oscuro"></button>
-              <button class="color-preset" data-color="#00474f" style="background:#00474f" title="Verde oscuro"></button>
-              <button class="color-preset" data-color="#4a0e0e" style="background:#4a0e0e" title="Burdeos"></button>
-            </div>
+            <p class="form-msg" id="cod-msg"></p>
           </div>
         </div>
 
-        <div class="pers-card">
-          <h3 class="pers-card-title">Datos del Ejecutivo</h3>
-          <div class="field">
-            <label>Nombre del ejecutivo</label>
-            <input type="text" id="pers-nombre" placeholder="Ej: Juan Pérez">
+        <!-- Tabla de códigos actuales -->
+        <h3 class="subsection-title" style="margin-top:32px">Códigos actuales</h3>
+        <div class="table-wrap" id="codigos-tabla-wrap">
+          <div class="loader-wrap">
+            <div class="spinner"></div>
           </div>
-          <div class="field">
-            <label>Nombre de la empresa</label>
-            <input type="text" id="pers-empresa" placeholder="Ej: Movistar">
+        </div>
+      </section>
+
+      <!-- ── METAS ── -->
+      <section id="section-metas" class="section">
+        <div class="section-header">
+          <h2 class="section-title">Metas KPI</h2>
+          <p class="section-sub">Modifica las metas de cada KPI en MetasYPesosKPI</p>
+        </div>
+        <div id="metas-wrap">
+          <div class="loader-wrap">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── PERSONALIZACIÓN ── -->
+      <section id="section-personalizacion" class="section">
+        <div class="section-header">
+          <h2 class="section-title">Personalización</h2>
+          <p class="section-sub">Adapta los colores y datos del dashboard</p>
+        </div>
+
+        <div class="pers-grid">
+          <div class="pers-card">
+            <h3 class="pers-card-title">Colores</h3>
+            <div class="field">
+              <label>Color principal (acento)</label>
+              <div class="color-pick-row">
+                <input type="color" id="pers-color-acento" value="#fb8500">
+                <input type="text" id="pers-color-acento-hex" placeholder="#fb8500" maxlength="7">
+              </div>
+              <div class="color-presets" id="presets-acento">
+                <button class="color-preset" data-color="#fb8500" style="background:#fb8500" title="Naranja"></button>
+                <button class="color-preset" data-color="#6c63ff" style="background:#6c63ff" title="Violeta"></button>
+                <button class="color-preset" data-color="#00b894" style="background:#00b894" title="Verde"></button>
+                <button class="color-preset" data-color="#e84393" style="background:#e84393" title="Rosa"></button>
+                <button class="color-preset" data-color="#0984e3" style="background:#0984e3" title="Azul"></button>
+                <button class="color-preset" data-color="#d63031" style="background:#d63031" title="Rojo"></button>
+                <button class="color-preset" data-color="#fdcb6e" style="background:#fdcb6e" title="Amarillo"></button>
+                <button class="color-preset" data-color="#00cec9" style="background:#00cec9" title="Cyan"></button>
+              </div>
+            </div>
+            <div class="field" style="margin-top:16px">
+              <label>Color secundario (sidebar)</label>
+              <div class="color-pick-row">
+                <input type="color" id="pers-color-sidebar" value="#023047">
+                <input type="text" id="pers-color-sidebar-hex" placeholder="#023047" maxlength="7">
+              </div>
+              <div class="color-presets" id="presets-sidebar">
+                <button class="color-preset" data-color="#023047" style="background:#023047"
+                  title="Azul oscuro"></button>
+                <button class="color-preset" data-color="#1a1a2e" style="background:#1a1a2e" title="Navy"></button>
+                <button class="color-preset" data-color="#2d3436" style="background:#2d3436" title="Grafito"></button>
+                <button class="color-preset" data-color="#6c5ce7" style="background:#6c5ce7"
+                  title="Violeta oscuro"></button>
+                <button class="color-preset" data-color="#00474f" style="background:#00474f"
+                  title="Verde oscuro"></button>
+                <button class="color-preset" data-color="#4a0e0e" style="background:#4a0e0e" title="Burdeos"></button>
+              </div>
+            </div>
           </div>
 
-          <div class="pers-preview" id="pers-preview">
-            <div class="preview-avatar" id="preview-avatar">J</div>
-            <div>
-              <div class="preview-name" id="preview-nombre">Juan Pérez</div>
-              <div class="preview-empresa" id="preview-empresa">Movistar</div>
+          <div class="pers-card">
+            <h3 class="pers-card-title">Datos del Ejecutivo</h3>
+            <div class="field">
+              <label>Nombre del ejecutivo</label>
+              <input type="text" id="pers-nombre" placeholder="Ej: Juan Pérez">
+            </div>
+            <div class="field">
+              <label>Nombre de la empresa</label>
+              <input type="text" id="pers-empresa" placeholder="Ej: Movistar">
+            </div>
+
+            <div class="pers-preview" id="pers-preview">
+              <div class="preview-avatar" id="preview-avatar">J</div>
+              <div>
+                <div class="preview-name" id="preview-nombre">Juan Pérez</div>
+                <div class="preview-empresa" id="preview-empresa">Movistar</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="form-actions" style="margin-top:24px">
-        <div class="field" style="flex:1;max-width:260px">
-          <label>Contraseña admin</label>
-          <input type="password" id="pers-password" placeholder="Contraseña">
+        <div class="form-actions" style="margin-top:24px">
+          <div class="field" style="flex:1;max-width:260px">
+            <label>Contraseña admin</label>
+            <input type="password" id="pers-password" placeholder="Contraseña">
+          </div>
+          <button class="btn-accent" id="pers-btn-guardar">Guardar cambios →</button>
         </div>
-        <button class="btn-accent" id="pers-btn-guardar">Guardar cambios →</button>
-      </div>
-      <p class="form-msg" id="pers-msg"></p>
-    </section>
+        <p class="form-msg" id="pers-msg"></p>
+      </section>
 
-  </main>
-</div>
+    </main>
+  </div>
 
-<!-- TOAST -->
-<div class="toast-container" id="toast-container"></div>
+  <!-- TOAST -->
+  <div class="toast-container" id="toast-container"></div>
 
-<!-- FULLSCREEN IMG -->
-<div class="fullscreen-overlay" id="fullscreen-overlay">
-  <button class="fullscreen-close" id="fullscreen-close">✕</button>
-  <img id="fullscreen-img" src="" alt="">
-</div>
+  <!-- FULLSCREEN IMG -->
+  <div class="fullscreen-overlay" id="fullscreen-overlay">
+    <button class="fullscreen-close" id="fullscreen-close">✕</button>
+    <img id="fullscreen-img" src="" alt="">
+  </div>
 
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
+
 </html>
