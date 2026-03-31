@@ -1,5 +1,5 @@
 // ── CONFIG ──────────────────────────────────────────────
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbylXxEk_2ydD4gdeOKwYnQOdpGyvbxcYO_cpFdEGUmpGd3qfm_gUkMrzUA_5w32XLF0/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzi9-qvEFAPR5H3iPNDcUcL4vYN5KYlDuB6amyEtcLxaYXVZq2riCw9eX-FllizbSg/exec';
 const FIREBASE_BUCKET = 'seguimiento-ventas-manuel.firebasestorage.app'; // ← o el del cliente
 const GALERIA_FOLDER = 'galeria_v2/';
 const PASS_KEY = btoa('Ventas2025'); // contraseña de ventas (sync con Config.gs)
@@ -42,6 +42,7 @@ async function initApp() {
   initPersonalizacion();
   initAceleradoresControls();
   initCerrarMes();
+  initLimpiarVentas();
   updateTime();
   setInterval(updateTime, 30000);
   navigateTo('inicio');
@@ -76,12 +77,12 @@ function aplicarConfig(config) {
 function initNav() {
   document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', e => {
-      if (item.id === 'nav-cerrar-mes') return; // Handled separately
+      if (item.id === 'nav-cerrar-mes' || item.id === 'nav-limpiar-ventas') return; // Handled separately
       e.preventDefault();
       const sec = item.dataset.section;
       if (sec) {
-          navigateTo(sec);
-          closeSidebar();
+        navigateTo(sec);
+        closeSidebar();
       }
     });
   });
@@ -174,15 +175,15 @@ async function cargarKPIs() {
       card.style.setProperty('--kpi-color', color);
       // ISN y NBA tienen valores porcentuales (0.9 = 90%, 0.85 = 85%)
       const esPorc = ['ISN', 'ADHESION_NBA'].includes(kpi.id);
-      
+
       // Proyección Fin de Mes
       let proyeccionHtml = '';
       if (typeof kpi.real === 'number' && typeof kpi.meta === 'number' && kpi.meta > 0 && !esPorc) {
-          const hoy = new Date();
-          const diaActual = Math.max(1, hoy.getDate());
-          const totalDias = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
-          const proyNum = (kpi.real / diaActual) * totalDias;
-          proyeccionHtml = `<div style="font-size:0.75rem; color:var(--text-2); margin-top:8px; border-top:1px solid var(--border); padding-top:6px;">Proy. Fin de Mes: <strong style="color:var(--text-1)">${formatVal(proyNum)}</strong></div>`;
+        const hoy = new Date();
+        const diaActual = Math.max(1, hoy.getDate());
+        const totalDias = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
+        const proyNum = (kpi.real / diaActual) * totalDias;
+        proyeccionHtml = `<div style="font-size:0.75rem; color:var(--text-2); margin-top:8px; border-top:1px solid var(--border); padding-top:6px;">Proy. Fin de Mes: <strong style="color:var(--text-1)">${formatVal(proyNum)}</strong></div>`;
       }
 
       // Botón + para TERMINALES
@@ -232,7 +233,7 @@ async function cargarAceleradores() {
     aList.forEach((item, idx) => {
       // Si el evaluado está vacío, mejor no mostrar la tarjeta
       if (!item.valorEvaluado && !item.formulaOTexto) return;
-      
+
       const color = colores[idx % colores.length];
       const card = document.createElement('div');
       card.className = 'acel-card';
@@ -250,7 +251,7 @@ async function cargarAceleradores() {
       const btnOc = document.createElement('button');
       const iconEye = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
       const iconEyeOff = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
-      
+
       btnOc.innerHTML = iconEye;
       btnOc.title = 'Ocultar';
       btnOc.style.cssText = 'background:none;border:none;cursor:pointer;color:var(--text-2);padding:0;display:flex;align-items:center;flex-shrink:0;margin-left:8px;';
@@ -324,30 +325,30 @@ async function cargarFaltantes() {
 
       gwrap.querySelectorAll('.input-unidad-gestion').forEach(inp => {
         inp.addEventListener('change', async (e) => {
-           const fila = e.target.dataset.fila;
-           const val = e.target.value;
-           
-           const pwd = prompt('Ingresa la contraseña admin para confirmar modificación:');
-           if (!pwd) {
-               cargarFaltantes(); // revert
-               return; 
-           }
-           
-           try {
-               toast('Guardando unidad...', 'ok');
-               e.target.disabled = true;
-               const resPost = await post('actualizarunidadgestion', { fila: parseInt(fila), valor: val, password: pwd });
-               if (resPost.success) {
-                   toast('Unidad actualizada en Sheets', 'ok');
-                   cargarFaltantes();
-               } else {
-                   alert('Error al guardar: ' + resPost.error);
-                   cargarFaltantes();
-               }
-           } catch (err) {
-               alert('Error de conexión');
-               cargarFaltantes();
-           }
+          const fila = e.target.dataset.fila;
+          const val = e.target.value;
+
+          const pwd = prompt('Ingresa la contraseña admin para confirmar modificación:');
+          if (!pwd) {
+            cargarFaltantes(); // revert
+            return;
+          }
+
+          try {
+            toast('Guardando unidad...', 'ok');
+            e.target.disabled = true;
+            const resPost = await post('actualizarunidadgestion', { fila: parseInt(fila), valor: val, password: pwd });
+            if (resPost.success) {
+              toast('Unidad actualizada en Sheets', 'ok');
+              cargarFaltantes();
+            } else {
+              alert('Error al guardar: ' + resPost.error);
+              cargarFaltantes();
+            }
+          } catch (err) {
+            alert('Error de conexión');
+            cargarFaltantes();
+          }
         });
       });
 
@@ -388,25 +389,25 @@ async function initFormVenta() {
     const cat = selCategoria.value.trim().toLowerCase();
     const kpi = selTipoKPI.value;
     inpEquivUnit.value = ''; inpEquivTot.value = '';
-    
+
     if (kpi === 'VOZ_MOVIL') {
-        const codigosVoz = ['Cod_3NA', 'Cod_3LN', 'Cod_3LM', 'Cod_3JB'];
-        const entradasVoz = ['Alta Normal', 'Portada Prepago', 'Portada Postpago', 'Alta Totalización', 'Porta Pre Totalizada', 'Porta Post Totalizada', 'Alta Completación', 'Porta Pre Completación', 'Porta Post Completación'];
-        poblarSelect(selCod, codigosVoz, '— Selecciona código —');
-        poblarSelect(selEntrada, entradasVoz, '— Selecciona tipo entrada —');
-        return;
+      const codigosVoz = ['Cod_3NA', 'Cod_3LN', 'Cod_3LM', 'Cod_3JB'];
+      const entradasVoz = ['Alta Normal', 'Portada Prepago', 'Portada Postpago', 'Alta Totalización', 'Porta Pre Totalizada', 'Porta Post Totalizada', 'Alta Completación', 'Porta Pre Completación', 'Porta Post Completación'];
+      poblarSelect(selCod, codigosVoz, '— Selecciona código —');
+      poblarSelect(selEntrada, entradasVoz, '— Selecciona tipo entrada —');
+      return;
     }
 
     if (kpi === 'MIGRACIÓN') {
-        poblarSelect(selCod, ['Cod_Migracion'], '— Selecciona código —');
-        poblarSelect(selEntrada, ['Alta Migrada'], '— Selecciona tipo entrada —');
-        return;
+      poblarSelect(selCod, ['Cod_Migracion'], '— Selecciona código —');
+      poblarSelect(selEntrada, ['Alta Migrada'], '— Selecciona tipo entrada —');
+      return;
     }
 
     if (kpi === 'PPT') {
-        poblarSelect(selCod, ['Cod_PPT'], '— Selecciona código —');
-        poblarSelect(selEntrada, ['Alta Ppt'], '— Selecciona tipo entrada —');
-        return;
+      poblarSelect(selCod, ['Cod_PPT'], '— Selecciona código —');
+      poblarSelect(selEntrada, ['Alta Ppt'], '— Selecciona tipo entrada —');
+      return;
     }
 
     if (!cat) {
@@ -429,21 +430,21 @@ async function initFormVenta() {
     const codigo = selCod.value;
     const kpi = selTipoKPI.value;
     inpEquivUnit.value = ''; inpEquivTot.value = '';
-    
+
     if (kpi === 'VOZ_MOVIL') {
-        const entradasVoz = ['Alta Normal', 'Portada Prepago', 'Portada Postpago', 'Alta Totalización', 'Porta Pre Totalizada', 'Porta Post Totalizada', 'Alta Completación', 'Porta Pre Completación', 'Porta Post Completación'];
-        poblarSelect(selEntrada, entradasVoz, '— Selecciona tipo entrada —');
-        return;
+      const entradasVoz = ['Alta Normal', 'Portada Prepago', 'Portada Postpago', 'Alta Totalización', 'Porta Pre Totalizada', 'Porta Post Totalizada', 'Alta Completación', 'Porta Pre Completación', 'Porta Post Completación'];
+      poblarSelect(selEntrada, entradasVoz, '— Selecciona tipo entrada —');
+      return;
     }
 
     if (kpi === 'MIGRACIÓN') {
-        poblarSelect(selEntrada, ['Alta Migrada'], '— Selecciona tipo entrada —');
-        return;
+      poblarSelect(selEntrada, ['Alta Migrada'], '— Selecciona tipo entrada —');
+      return;
     }
 
     if (kpi === 'PPT') {
-        poblarSelect(selEntrada, ['Alta Ppt'], '— Selecciona tipo entrada —');
-        return;
+      poblarSelect(selEntrada, ['Alta Ppt'], '— Selecciona tipo entrada —');
+      return;
     }
 
     if (!cat || !codigo) return;
@@ -781,19 +782,19 @@ async function cargarMetas() {
     res.metas.forEach(m => {
       let isFractional = false;
       let displayMeta = m.meta;
-      
+
       const isPorcType = m.tipoMeta && m.tipoMeta.toString().toLowerCase() === 'porcentaje';
       if (isPorcType && typeof m.meta === 'number' && m.meta > 0 && m.meta <= 1.2) {
-          isFractional = true;
-          displayMeta = (m.meta * 100) + '%';
+        isFractional = true;
+        displayMeta = (m.meta * 100) + '%';
       }
-      
+
       const row = document.createElement('div');
       row.className = 'meta-row';
 
       let partidaHtml = '';
       if (m.kpiId.trim().toUpperCase() === 'GESTION DE VALOR') {
-          partidaHtml = `
+        partidaHtml = `
             <input class="meta-input meta-partida-input" type="number" step="any" value="${res.partidaGV || ''}" data-kpi="${m.kpiId}" placeholder="Partida" style="margin-left:8px;width:80px">
             <span class="meta-tipo" style="margin-left:4px;margin-right:4px">Partida</span>
           `;
@@ -842,20 +843,20 @@ async function cargarMetas() {
         const kpiId = inp.dataset.kpi;
         let valStr = inp.value.trim();
         if (!valStr) continue;
-        
+
         let nuevaMeta = parseFloat(valStr.replace('%', ''));
         if (isNaN(nuevaMeta)) continue;
 
         if (valStr.endsWith('%')) {
-            nuevaMeta = nuevaMeta / 100;
+          nuevaMeta = nuevaMeta / 100;
         }
 
         let partida = undefined;
         if (kpiId.trim().toUpperCase() === 'GESTION DE VALOR') {
-            const partInp = wrap.querySelector('.meta-partida-input');
-            if (partInp && partInp.value.trim() !== '') {
-                partida = parseFloat(partInp.value.trim());
-            }
+          const partInp = wrap.querySelector('.meta-partida-input');
+          if (partInp && partInp.value.trim() !== '') {
+            partida = parseFloat(partInp.value.trim());
+          }
         }
 
         try {
@@ -999,17 +1000,17 @@ async function abrirPopupEditarAceleradores() {
   const iconEdit = '<svg width="18" height="18" style="margin-right:6px;vertical-align:bottom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
   const popup = crearPopupBase(iconEdit + 'Editar Aceleradores');
   popup.querySelector('.popup-body').innerHTML = '<div class="loader-wrap"><div class="spinner"></div></div>';
-  
+
   try {
     const res = await get('getaceleradores');
     if (!res.success) throw new Error(res.error);
-    
+
     let aList = Array.isArray(res.aceleradores) ? res.aceleradores : [];
 
     function renderList() {
       let html = '<p style="font-size:0.82rem;color:var(--text-2);margin-bottom:16px">Edita el título y la fórmula directamente. Al guardar, se reemplazará la hoja usando A y B.</p>';
       html += '<div id="acel-edit-list" style="display:flex;flex-direction:column;gap:16px;margin-bottom:16px;">';
-      
+
       aList.forEach((item, index) => {
         html += `
           <div class="acel-edit-row" style="background:var(--bg-alt);padding:14px;border-radius:10px;position:relative;border:1px solid var(--border)">
@@ -1021,16 +1022,16 @@ async function abrirPopupEditarAceleradores() {
               <button class="btn-borrar-acel" data-idx="${index}" title="Eliminar" style="background:none;border:none;cursor:pointer;color:#d63031;padding:26px 0 0 0;display:flex;align-items:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
             </div>
             <div class="field">
-              <label>Fórmula o Texto <span style="font-weight:normal;opacity:0.6;font-size:0.75rem">— Valor actual: ${String(item.valorEvaluado || '').substring(0,40)}</span></label>
+              <label>Fórmula o Texto <span style="font-weight:normal;opacity:0.6;font-size:0.75rem">— Valor actual: ${String(item.valorEvaluado || '').substring(0, 40)}</span></label>
               <textarea class="acel-formula" rows="3" placeholder="Ej: =&quot;Llevas &quot; & COUNTIF(...)">${item.formulaOTexto || ''}</textarea>
             </div>
           </div>
         `;
       });
       html += '</div>';
-      
+
       html += `<button class="btn-sm btn-ghost" id="btn-add-acel" style="margin-bottom:24px;border-color:var(--accent);color:var(--accent);width:100%;justify-content:center">+ Agregar Nuevo Acelerador</button>`;
-      
+
       html += `
         <div class="form-actions">
           <div class="field" style="flex:1;max-width:220px">
@@ -1046,7 +1047,7 @@ async function abrirPopupEditarAceleradores() {
 
     const setHtml = () => {
       popup.querySelector('.popup-body').innerHTML = renderList();
-      
+
       // Events for delete
       popup.querySelectorAll('.btn-borrar-acel').forEach(btn => {
         btn.addEventListener('click', e => {
@@ -1096,7 +1097,7 @@ async function abrirPopupEditarAceleradores() {
     };
 
     setHtml();
-    
+
   } catch (e) {
     popup.querySelector('.popup-body').innerHTML = '<p style="color:var(--text-2);padding:20px">Error: ' + e.message + '</p>';
   }
@@ -1106,30 +1107,73 @@ async function abrirPopupEditarAceleradores() {
 function initCerrarMes() {
   const btn = document.getElementById('nav-cerrar-mes');
   if (!btn) return;
-  
+
   btn.addEventListener('click', async (e) => {
     e.preventDefault();
     closeSidebar();
-    
-    const qty = document.querySelectorAll('#kpi-grid .kpi-card').length;
-    // Just a sanity check, no blocking
-    
-    const pwd = prompt('⚠️ CERRAR MES ⚠️\\n\\nEsta acción generará un PDF con el resumen completo y luego BORRARÁ TODAS LAS VENTAS DEL MES para empezar de cero.\\n\\nPara autorizar, ingresa tu CONTRASEÑA de Administrador:');
+
+    const pwd = prompt('📑 ENVIAR REPORTE MENSUAL 📑\n\nEsta acción generará un PDF con el resumen completo y lo enviará al correo.\n(Las ventas NO se borrarán aún. Tendrás que hacerlo usando el botón "Limpiar Ventas").\n\nPara autorizar, ingresa tu CONTRASEÑA de Administrador:');
     if (!pwd) return;
-    
-    const email = prompt('📩 ¿A qué correo electrónico deseas enviar el reporte en PDF del mes cerrado?');
+
+    const email = prompt('📩 ¿A qué correo electrónico deseas enviar el reporte en PDF?');
     if (!email || !email.includes('@')) {
       toast('Correo inválido o cancelado.', 'err');
       return;
     }
 
-    const conf = confirm(`¿Estás 100% seguro de Cerrar el Mes?\\n\\n- El PDF con todas las hojas se enviará a: ${email}\\n- Se borrará definitivamente el historial de RegistroVentas.\\n\\nEsta acción no se puede deshacer.`);
+    const conf = confirm(`¿Estás seguro de enviar el reporte a "${email}"?\n\n- Se mandará el PDF con todas las hojas.\n- NO se borrará el historial de RegistroVentas hasta que uses "Limpiar Ventas".`);
     if (!conf) return;
 
     toast('Generando PDF y enviando correo, por favor no cierres la página...', 'ok');
-    
+
     try {
       const res = await post('cerrarmes', { password: pwd, email: email.trim() });
+      if (res.success) {
+        alert('✅ ÉXITO: ' + res.message);
+        
+        // Sugerir limpiar ventas de inmediato
+        const confWipe = confirm('El reporte se ha enviado correctamente. ¿Deseas LIMPIAR EL REGISTRO DE VENTAS ahora para comenzar el nuevo mes?');
+        if (confWipe) {
+            toast('Limpiando registro de ventas...', 'ok');
+            const resWipe = await post('limpiarventas', { password: pwd });
+            if (resWipe.success) {
+                alert('✅ Ventas borradas con éxito.');
+                window.location.reload();
+            } else {
+                alert('❌ Error al limpiar ventas: ' + resWipe.error);
+            }
+        } else {
+            // Recargar para estado normal
+            window.location.reload();
+        }
+
+      } else {
+        alert('❌ ERROR: ' + (res.error || 'Desconocido'));
+      }
+    } catch (err) {
+      alert('❌ ERROR de conexión: ' + err.message);
+    }
+  });
+}
+
+function initLimpiarVentas() {
+  const btn = document.getElementById('nav-limpiar-ventas');
+  if (!btn) return;
+
+  btn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    closeSidebar();
+
+    const pwd = prompt('⚠️ LIMPIAR TODAS LAS VENTAS ⚠️\n\nATENCIÓN: Esto BORRARÁ DEFINITIVAMENTE todo el historial de RegistroVentas.\nAsegúrate de haber enviado el Reporte (Cerrar Mes) antes de hacer esto.\n\nPara autorizar, ingresa la CONTRASEÑA de Administrador:');
+    if (!pwd) return;
+
+    const conf = confirm(`🚨 ¿Estás ABSOLUTAMENTE SEGURO de borrar TODAS las ventas?\n\n- Todo el Registro y los KPIs quedarán en 0.\n- Esta acción NO se puede deshacer.`);
+    if (!conf) return;
+
+    toast('Borrando registro de ventas...', 'ok');
+
+    try {
+      const res = await post('limpiarventas', { password: pwd });
       if (res.success) {
         alert('✅ ÉXITO: ' + res.message);
         window.location.reload();
