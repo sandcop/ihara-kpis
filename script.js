@@ -14,11 +14,19 @@ let appCache = {};
 function clearAppCache() { appCache = {}; }
 
 // ── AUTH ─────────────────────────────────────────────────
-function isAuth() { return sessionStorage.getItem('auth') === '1'; }
-function setAuth() { sessionStorage.setItem('auth', '1'); }
+// ── AUTH ─────────────────────────────────────────────────
+function isAuth() { return localStorage.getItem('auth') === '1'; }
+function setAuth() { localStorage.setItem('auth', '1'); }
+function clearAuth() { localStorage.removeItem('auth'); }
 
 document.getElementById('login-btn').addEventListener('click', doLogin);
 document.getElementById('login-input').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('logout-btn')?.addEventListener('click', () => {
+  if (confirm('¿Cerrar sesión?')) {
+    clearAuth();
+    location.reload();
+  }
+});
 
 function doLogin() {
   const pwd = document.getElementById('login-input').value.trim();
@@ -1234,3 +1242,11 @@ function crearPopupBase(titulo) {
   document.body.appendChild(popup);
   return popup;
 }
+
+// ── AUTO-LOGIN CHECK ─────────────────────────────────────
+if (isAuth()) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initApp();
+}
+
