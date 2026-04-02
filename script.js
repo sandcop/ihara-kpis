@@ -10,6 +10,9 @@ let galeriaIdx = 0;
 let reglasCache = [];
 let configActual = {};
 
+let appCache = {};
+function clearAppCache() { appCache = {}; }
+
 // ── AUTH ─────────────────────────────────────────────────
 function isAuth() { return sessionStorage.getItem('auth') === '1'; }
 function setAuth() { sessionStorage.setItem('auth', '1'); }
@@ -33,11 +36,15 @@ function doLogin() {
 
 // ── INIT ─────────────────────────────────────────────────
 async function initApp() {
-  await cargarConfig();
+  // Disparar peticiones concurrentes para cargar mucho más rápido, sin bloquear el UI
+  Promise.all([
+    cargarConfig(),
+    cargarUltimaVenta(),
+    initFormVenta()
+  ]);
+  
   initNav();
   initTheme();
-  cargarUltimaVenta();
-  initFormVenta();
   initCodigos();
   initPersonalizacion();
   initAceleradoresControls();
@@ -212,7 +219,11 @@ async function cargarKPIs() {
   }
 }
 
-document.getElementById('btn-refresh-kpis').addEventListener('click', () => { cargarKPIs(); cargarAceleradores(); });
+document.getElementById('btn-refresh-kpis').addEventListener('click', () => { 
+  clearAppCache();
+  cargarKPIs(); 
+  cargarAceleradores(); 
+});
 
 
 // ── ACELERADORES ─────────────────────────────────────────
@@ -707,8 +718,15 @@ function previewColors() {
 
 
 async function get(action) {
+  if (appCache[action]) {
+    // Si resolvemos muy rápido desde caché, devolvemos una promesa que resuelve en el siguiente tick
+    // para no bloquear hilos síncronos y mantener el comportamiento async.
+    return Promise.resolve(appCache[action]);
+  }
   const res = await fetch(APPS_SCRIPT_URL + '?action=' + action, { cache: 'no-cache' });
-  return res.json();
+  const data = await res.json();
+  if (data.success) appCache[action] = data;
+  return data;
 }
 
 async function post(action, body) {
@@ -718,7 +736,10 @@ async function post(action, body) {
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify({ action, ...body })
   });
-  return res.json();
+  const data = await res.json();
+  // Auto-purga de caché local si el POST es exitoso (porque hubo un cambio en backend)
+  if (data.success) clearAppCache();
+  return data;
 }
 
 function showMsg(el, text, ok) {
