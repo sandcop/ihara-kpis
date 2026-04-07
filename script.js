@@ -418,7 +418,7 @@ async function initFormVenta() {
     }
 
     if (kpi === 'MIGRACIÓN') {
-      poblarSelect(selCod, ['Cod_Migracion'], '— Selecciona código —');
+      poblarSelect(selCod, ['Cod_4FU'], '— Selecciona código —');
       poblarSelect(selEntrada, ['Alta Migrada'], '— Selecciona tipo entrada —');
       return;
     }
