@@ -410,7 +410,7 @@ async function initFormVenta() {
     inpEquivUnit.value = ''; inpEquivTot.value = '';
 
     if (kpi === 'VOZ_MOVIL') {
-      const codigosVoz = ['Cod_3NA', 'Cod_3LN', 'Cod_3LM', 'Cod_3JB'];
+      const codigosVoz = ['Cod_4FS', 'Cod_4FR', 'Cod_4FQ', 'Cod_3JB'];
       const entradasVoz = ['Alta Normal', 'Portada Prepago', 'Portada Postpago', 'Alta Totalización', 'Porta Pre Totalizada', 'Porta Post Totalizada', 'Alta Completación', 'Porta Pre Completación', 'Porta Post Completación'];
       poblarSelect(selCod, codigosVoz, '— Selecciona código —');
       poblarSelect(selEntrada, entradasVoz, '— Selecciona tipo entrada —');
